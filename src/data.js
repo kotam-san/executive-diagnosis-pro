@@ -1,0 +1,28 @@
+export const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxer99EX4FLau9oS_mowFEhaCjbWgAbacLEXyVI3wK_pDQX9wQ07tGV5riIQPt8WFBB/exec"
+
+export const categories = [
+  { name: "ビジネス・仕事",   question: "今の仕事にやりがいを感じていますか？経営者として成果を実感できていますか？",       domain: "経営・事業", quick: true },
+  { name: "お金・収入",       question: "財務的な安定や個人の経済状況に不安はありませんか？",                               domain: "資産・財務", quick: true },
+  { name: "社会貢献",         question: "事業を通じて社会や人の役に立てている実感はありますか？",                           domain: "経営・事業", quick: false },
+  { name: "キャリアビジョン", question: "自社の将来と自身のリーダーシップに明確なビジョンがありますか？",                   domain: "経営・事業", quick: false },
+  { name: "友人関係",         question: "利害関係を超えて、心から信頼できる相談相手や友人はいますか？",                     domain: "人間関係",   quick: false },
+  { name: "家族関係",         question: "家族との関係は良好ですか？経営の支えとなる安心感がありますか？",                   domain: "人間関係",   quick: true },
+  { name: "パートナーシップ", question: "パートナーとの深い信頼関係は保たれていますか？",                                   domain: "人間関係",   quick: false },
+  { name: "健康・体力",       question: "経営判断を支えるエネルギーは十分ですか？体調管理は万全ですか？",                   domain: "心身・環境", quick: true },
+  { name: "時間の自由",       question: "現場を離れ、戦略立案や休息のための時間をコントロールできていますか？",             domain: "心身・環境", quick: false },
+  { name: "住環境",           question: "自宅は心身をリセットできる快適な場所になっていますか？",                           domain: "心身・環境", quick: false },
+  { name: "趣味・余暇",       question: "仕事以外の自分に戻れる時間はありますか？",                                         domain: "心身・環境", quick: false },
+  { name: "持ち物・環境",     question: "身の回りの物やIT環境、執務スペースは整っていますか？",                             domain: "心身・環境", quick: false },
+  { name: "心の健康",         question: "重責の中でも心は穏やかですか？ストレスと上手く付き合えていますか？",               domain: "心身・環境", quick: true },
+  { name: "自己実現",         question: "経営を通じて、本来の「自分らしさ」を体現できていますか？",                         domain: "内面・成長", quick: true },
+  { name: "創造性",           question: "新しい事業アイデアや解決策を生み出す余白はありますか？",                           domain: "内面・成長", quick: false },
+  { name: "学び・成長",       question: "経営者として、また人間として、常にアップデートを続けていますか？",                 domain: "内面・成長", quick: false },
+  { name: "チャレンジ精神",   question: "失敗を恐れず、新たな領域へ投資や行動ができていますか？",                           domain: "内面・成長", quick: false },
+  { name: "ライフバランス",   question: "「公」と「私」の境界線が、良い意味で機能していますか？",                           domain: "内面・成長", quick: false },
+  { name: "人間関係の質",     question: "周囲（社員・顧客・取引先）との関係は深く意味のあるものですか？",                   domain: "人間関係",   quick: true },
+  { name: "信頼と安心感",     question: "人を信頼し、また右腕となる人材に任せることができていますか？",                     domain: "経営・事業", quick: false },
+  { name: "感謝の気持ち",     question: "日々、生かされていることへの感謝を実感できていますか？",                           domain: "内面・成長", quick: false },
+  { name: "目標達成度",       question: "設定した長期目標に向かって、一歩ずつ着実に進んでいますか？",                       domain: "経営・事業", quick: false },
+  { name: "スピリチュアリティ", question: "信念や座右の銘、精神的な柱を持っていますか？",                                   domain: "内面・成長", quick: false },
+  { name: "人生の目的",       question: "「なぜこの事業をやっているのか」という究極の目的と繋がっていますか？",             domain: "内面・成長", quick: true },
+]
