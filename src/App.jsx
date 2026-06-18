@@ -241,7 +241,7 @@ export default function App() {
                   onChange={e => setAgreedToPolicy(e.target.checked)}
                   className="mt-1 w-5 h-5 accent-emerald-600 cursor-pointer flex-shrink-0" />
                 <span className="text-sm text-slate-600 leading-relaxed">
-                  <a href="https://www.1planet.jp/privacy-policy" target="_blank" rel="noopener noreferrer"
+                  <a href="https://www.1planet.jp/privacy" target="_blank" rel="noopener noreferrer"
                     className="text-emerald-600 underline hover:text-emerald-800 font-bold">プライバシーポリシー</a>
                   に同意して、診断結果の表示および ONE PLANET からの情報提供を受けることに同意します。
                 </span>
