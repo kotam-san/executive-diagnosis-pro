@@ -142,10 +142,12 @@ test('malformed JSON and unknown action return errors', () => {
   assert.equal(h.post({action:'unknown'}).status,'error')
 })
 test('AI advice and plan actions keep their existing response interface', () => {
-  const h=harness();h.ctx.generateAnalysis=()=> 'fake advice';h.ctx.generateActionPlan=()=> 'fake plan'
-  assert.deepEqual(h.post({action:'get_advice'}),{status:'success',analysis:'fake advice'})
-  assert.deepEqual(h.post({action:'generate_plan'}),{status:'success',plan:'fake plan'})
-  assert.equal(h.state.writes,0);assert.equal(h.state.mails.length,0)
+  const h=harness({enableAi:true});h.ctx.generateAnalysis=()=> 'fake advice';h.ctx.generateActionPlan=()=> 'fake plan'
+  const p=payload(h.ctx,'quick',{action:'save_only_v2'}),saved=h.post(p),writes=h.state.writes,mails=h.state.mails.length
+  const input={name:p.name,mode:p.mode,ratings:p.ratings,aiSession:saved.aiSession}
+  assert.deepEqual(h.post({...input,action:'get_advice',challengeToken:h.humanToken()}),{status:'success',analysis:'fake advice'})
+  assert.deepEqual(h.post({...input,action:'generate_plan',challengeToken:h.humanToken()}),{status:'success',plan:'fake plan'})
+  assert.equal(h.state.writes,writes);assert.equal(h.state.mails.length,mails)
 })
 
 test('the same ID cannot be reused across diagnosis modes', () => {
