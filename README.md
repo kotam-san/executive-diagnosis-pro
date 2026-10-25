@@ -2,11 +2,13 @@
 
 クイック8問・精密24問の診断画面と、Google Apps Script（GAS）の保存・AI連携コードです。
 
-工程2・3の修正ブランチでは、回答の完全性、AI利用保護、通信・描画障害からの復旧を実装しています。本番用のTurnstile設定と反映は未実施です。設定・利用上限・リリース条件は[AIの安全対策](docs/AI-SECURITY.md)を参照してください。稼働中の版は下記の公開版タグで固定しています。
+工程2〜4の修正ブランチでは、回答の完全性、AI利用保護、障害復旧、依存更新と配信防御を実装しています。本番用のTurnstile設定と反映は未実施です。設定・利用上限・リリース条件は[AIの安全対策](docs/AI-SECURITY.md)を参照してください。稼働中の版は下記の公開版タグで固定しています。
 
 [工程2の検証結果](docs/STEP2-VERIFICATION.md)：自動テスト148件、模擬サービスによる実画面確認13項目が成功。
 
 [工程3の検証結果](docs/STEP3-VERIFICATION.md)：追加修正の内容、現在の検証結果と未確認事項。
+
+[工程4の検証結果](docs/STEP4-VERIFICATION.md)：依存監査、CSP、CI、狭い画面の検証。[日常運用と障害対応](docs/OPERATIONS.md)も参照してください。
 
 ## ソースと公開版
 
@@ -26,12 +28,13 @@
 
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
-npm test
-env -u VITE_GAS_WEBAPP_URL npm run build
-npm run verify:baseline
+npm run check
+npm audit --audit-level=moderate
 ```
 
 `npm test`はNode組み込みのテストランナーを使用します。Sheets・Gmail・外部AIは模擬サービスに置き換わり、実際の保存・通知・AI生成は行いません。
+
+現在のビルドにはNode.js 24が必要です。Tailwind 4への更新により、対応ブラウザはChrome／Edge 111、Firefox 128、Safari 16.4以降です。CSS設定は`src/index.css`で管理し、旧`tailwind.config.js`と`postcss.config.js`は使用しません。
 
 `verify:baseline`は上記公開版とローカルビルドを照合するコマンドです。以後の機能修正でソースやビルドが変われば不一致になるのが正常です。記録済みの公開版タグをチェックアウトした状態で利用してください。
 

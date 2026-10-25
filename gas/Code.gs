@@ -44,17 +44,51 @@ function doPost(e) {
     else if (action === 'generate_plan')   result = handleGeneratePlan(payload);
     else result = { status: 'error', code: 'INVALID_INPUT', message: '送信内容を確認してください。' };
 
+    logRequestOutcome(action, result);
     output.setContent(JSON.stringify(result));
   } catch (err) {
     var isAiAction = action === 'get_advice' || action === 'generate_plan';
     var safeError = err.safeForClient === true;
     var errorCode = safeError ? err.code : (isAiAction ? 'AI_UNAVAILABLE' : 'SAVE_FAILED');
+    logRequestOutcome(action, { status: 'error', code: errorCode });
     console.error('診断リクエスト失敗: ' + errorCode);
     output.setContent(JSON.stringify({ status: 'error', code: errorCode,
       message: safeError ? err.message : (isAiAction ? 'AIフィードバックを現在ご利用いただけません。少し待ってからもう一度お試しください。' : '保存を確認できませんでした。同じ画面からもう一度お試しください。') }));
   }
 
   return output;
+}
+
+// Aggregate operational events only. Never log the payload, receipt, token or personal data.
+function logRequestOutcome(action, result) {
+  try {
+    var known = ['save_only', 'save_only_v2', 'get_advice', 'generate_plan'];
+    var entry = { event: 'diagnosis_request', action: known.indexOf(action) >= 0 ? action : 'unknown', outcome: result.status === 'success' ? 'success' : 'error' };
+    if (typeof result.code === 'string' && /^[A-Z_]{1,40}$/.test(result.code)) entry.code = result.code;
+    if (result.saved === true) entry.duplicate = result.duplicate === true;
+    if (['sent', 'failed', 'not_configured', 'skipped_duplicate'].indexOf(result.notification) >= 0) entry.notification = result.notification;
+    console.log(JSON.stringify(entry));
+  } catch (err) { /* Logging failure must not change a save or generation result. */ }
+}
+
+// Owner-only editor helper, deliberately not exposed through doGet/doPost.
+function inspectOperations() {
+  var props = PropertiesService.getScriptProperties();
+  var ready = false, configError = false;
+  try { ready = !!aiConfiguration(); } catch (err) { configError = true; }
+  var report = { event: 'diagnosis_operations', aiConfigured: ready, aiConfigurationInvalid: configError,
+    sheetConfigured: !!getSheetId(), notificationConfigured: !!getNotifyEmail(), usageAvailable: false };
+  try {
+    var budget = JSON.parse(props.getProperty('AI_USAGE_BUDGET') || 'null');
+    if (budget && /^\d{4}-\d{2}-\d{2}$/.test(budget.day) && /^\d{4}-\d{2}-\d{2}T\d{2}$/.test(budget.hour) && Number.isSafeInteger(budget.daily) && budget.daily >= 0 && Number.isSafeInteger(budget.hourly) && budget.hourly >= 0) {
+      report.usageAvailable = true;
+      report.day = budget.day; report.dayAttempts = budget.daily;
+      report.hour = budget.hour; report.hourAttempts = budget.hourly;
+      report.pendingAttempts = budget.pending && typeof budget.pending === 'object' ? Object.keys(budget.pending).filter(function(key) { return budget.pending[key] && budget.pending[key].expiresAt > Date.now(); }).length : 0;
+    }
+  } catch (err) { report.usageUnreadable = true; }
+  console.log(JSON.stringify(report));
+  return report;
 }
 
 // =========================================================
@@ -538,7 +572,7 @@ function sendRegistrationNotification(name, email, mode) {
       '【日時】' + new Date().toLocaleString('ja-JP') + '\n\n' +
       'スプレッドシートで詳細を確認してください。';
 
-    GmailApp.sendEmail(notifyEmail, subject, body);
+    MailApp.sendEmail(notifyEmail, subject, body);
     return 'sent';
   } catch (err) {
     console.error('登録通知メール送信エラー');

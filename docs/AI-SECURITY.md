@@ -72,11 +72,11 @@ Cloudflareが公開しているテスト用secret keyは本番設定として拒
 
 ```sh
 npm test
-VITE_GAS_WEBAPP_URL=http://127.0.0.1:4187/test-gas VITE_TURNSTILE_SITE_KEY=local-browser-test-key npm run build -- --outDir dist-test
+VITE_GAS_WEBAPP_URL=/test-gas VITE_TURNSTILE_SITE_KEY=local-browser-test-key npm run build -- --outDir dist-test
 node test/browser-server.mjs
 ```
 
-`http://127.0.0.1:4187/`を開く。Google・Cloudflare・Claudeは全て模擬サービス。CSPで外部接続を遮断する。模擬の安全確認は本物のCAPTCHAではない。サーバーはloopbackだけで待ち受ける。
+`http://127.0.0.1:4187/`を開く。Google・Cloudflare・ClaudeのAPIは全て模擬サービス。工程4から本番と同じCSPを使うため、Google Fonts等の許可済み表示資源は読み込める。APIはローカルの`/test-gas`だけに送る。模擬の安全確認は本物のCAPTCHAではない。サーバーはloopbackだけで待ち受ける。
 
 ローカルの制御用URL（全て本番には存在しない）：
 
@@ -89,6 +89,8 @@ node test/browser-server.mjs
 - `/__audit/state`：個人情報を含めない模擬リクエストの集計
 
 工程3の追加モード・描画障害の再現と検証結果は[STEP3-VERIFICATION.md](STEP3-VERIFICATION.md)を参照。
+
+工程4では`/__audit/embed?width=375`（320／768／1024も可）で狭いiframeを検証できる。`http://127.0.0.1:4188/`は許可外の親オリジンを模擬し、子のCSPによる表示拒否を確認する。本番サーバーの機能ではない。
 
 ## 残る範囲
 

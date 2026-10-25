@@ -164,7 +164,7 @@ export default function App() {
         <header className="text-center mb-12 animate-in">
           <p className="text-[10px] tracking-[0.2em] text-emerald-700 font-black mb-3 uppercase">FOR EXECUTIVE LEADERSHIP</p>
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">経営者の「器」診断 Pro</h1>
-          <div className="h-1.5 w-24 bg-emerald-600 mx-auto rounded-full shadow-sm"></div>
+          <div className="h-1.5 w-24 bg-emerald-600 mx-auto rounded-full shadow-xs"></div>
         </header>
 
         {appPhase === 'welcome' && (
@@ -245,7 +245,7 @@ export default function App() {
                   aria-invalid={Boolean(inputErrors.name)} aria-describedby={inputErrors.name ? 'name-error' : undefined}
                   onChange={e => { setUserInfo({...userInfo, name: e.target.value}); setInputErrors(errors => ({...errors, name: ''})) }}
                   disabled={isSaving || saveUnconfirmed}
-                  className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-none transition-all font-medium text-lg"
+                  className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-hidden transition-all font-medium text-lg"
                   placeholder="姓名" />
                 {inputErrors.name && <p id="name-error" role="alert" className="mt-2 text-sm text-red-700">{inputErrors.name}</p>}
               </div>
@@ -255,7 +255,7 @@ export default function App() {
                   aria-invalid={Boolean(inputErrors.email)} aria-describedby={inputErrors.email ? 'email-error' : undefined}
                   onChange={e => { setUserInfo({...userInfo, email: e.target.value}); setInputErrors(errors => ({...errors, email: ''})) }}
                   disabled={isSaving || saveUnconfirmed}
-                  className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-none transition-all font-medium text-lg"
+                  className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-hidden transition-all font-medium text-lg"
                   placeholder="ex@company.com" />
                 {inputErrors.email && <p id="email-error" role="alert" className="mt-2 text-sm text-red-700">{inputErrors.email}</p>}
               </div>
@@ -265,7 +265,7 @@ export default function App() {
                   required disabled={isSaving || saveUnconfirmed}
                   checked={agreedToPolicy}
                   onChange={e => setAgreedToPolicy(e.target.checked)}
-                  className="mt-1 w-5 h-5 accent-emerald-600 cursor-pointer flex-shrink-0" />
+                  className="mt-1 w-5 h-5 accent-emerald-600 cursor-pointer shrink-0" />
                 <span className="text-sm text-slate-600 leading-relaxed">
                   <a href="https://www.1planet.jp/privacy" target="_blank" rel="noopener noreferrer"
                     className="text-emerald-600 underline hover:text-emerald-800 font-bold">プライバシーポリシー</a>

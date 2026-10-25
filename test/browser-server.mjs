@@ -17,7 +17,7 @@ h.ctx.generateAnalysis = (name, ratings) => {
   return `模擬分析：最初の回答は${Object.values(ratings)[0]}点です。`
 }
 h.ctx.generateActionPlan = ratings => `模擬プラン：最初の回答は${Object.values(ratings)[0]}点です。`
-const sdk = `<script>
+const sdk = `
 let renderFailed=false;
 window.turnstile={render(container,options){
  if(new URLSearchParams(location.search).has('widget-error')&&!renderFailed){renderFailed=true;throw Error('Mock render failed')}
@@ -30,16 +30,26 @@ if(new URLSearchParams(location.search).has('chart-error')){
  const original=HTMLCanvasElement.prototype.getContext;let failed=false;
  HTMLCanvasElement.prototype.getContext=function(...args){if(!failed){failed=true;throw Error('Mock canvas failed')}return original.apply(this,args)};
 }
-</script>`
-const headers = {
-  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; font-src 'none'; img-src 'self' data:; frame-src 'none'",
-  'Cache-Control':'no-store',
+`
+const securityHeaders={}
+let globalRule=false
+for(const line of (await fs.readFile(new URL('../public/_headers',import.meta.url),'utf8')).split('\n')) {
+  if(line&&!line.startsWith(' ')) globalRule=line==='/*'
+  const match=line.match(/^\s+([^:]+):\s*(.+)$/)
+  if(globalRule&&match)securityHeaders[match[1]]=match[2]
 }
+const headers = { ...securityHeaders, 'Cache-Control':'no-store' }
 function json(response, value, status = 200) { response.writeHead(status, { ...headers, 'Content-Type':'application/json' }); response.end(JSON.stringify(value)) }
 
 http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://127.0.0.1:4187')
+    if(url.pathname==='/__audit/sdk.js') {response.writeHead(200,{...headers,'Content-Type':'text/javascript'});return response.end(sdk)}
+    if(url.pathname==='/__audit/embed') {
+      const width=['320','375','768','1024'].includes(url.searchParams.get('width'))?url.searchParams.get('width'):'375'
+      response.writeHead(200,{...headers,'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; frame-src 'self'",'Content-Type':'text/html; charset=utf-8'})
+      return response.end(`<html lang="ja"><title>模擬の埋め込み確認</title><body style="margin:0"><iframe title="診断" src="/" width="${width}" height="2000" style="border:0;display:block;margin:auto"></iframe></body></html>`)
+    }
     if (request.method === 'GET' && url.pathname === '/__audit/control') {
       mode = url.searchParams.get('mode') || 'normal'
       if (mode === 'release') { for (const entry of held.splice(0)) if (!entry.response.destroyed) json(entry.response, entry.result); mode='normal' }
@@ -73,8 +83,14 @@ http.createServer(async (request, response) => {
     const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'}[extension]||'application/octet-stream'
     if (extension === '.html') {
       // Missing SDK is blocked by CSP and must surface a retryable error.
-      data=Buffer.from(data.toString().replace('<head>','<head>'+(url.searchParams.has('widget-missing') ? '' : sdk)))
+      data=Buffer.from(data.toString().replace('<head>','<head>'+(url.searchParams.has('widget-missing') ? '' : '<script src="/__audit/sdk.js"></script>')))
     }
     response.writeHead(200,{...headers,'Content-Type':mime});response.end(data)
   } catch { if (!response.headersSent) json(response,{error:'local verification server error'},500);else response.destroy() }
 }).listen(4187,'127.0.0.1',()=>console.log('Offline browser verification: http://127.0.0.1:4187/'))
+
+// An unapproved parent origin: the child's real frame-ancestors must block it.
+http.createServer((request,response)=>{
+  response.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'})
+  response.end('<html lang="ja"><title>許可外の埋め込み試験</title><body><h1>許可外の親オリジン</h1><iframe title="ブロック確認" src="http://127.0.0.1:4187/" width="375" height="800"></iframe></body></html>')
+}).listen(4188,'127.0.0.1')

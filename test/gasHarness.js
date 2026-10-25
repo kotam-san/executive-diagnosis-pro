@@ -6,7 +6,7 @@ export const gasSource = fs.readFileSync(new URL('../gas/Code.gs', import.meta.u
 
 export function harness(options = {}) {
   const state = {
-    sheets: new Map(), mails: [], locked: false, acquires: 0, releases: 0,
+    sheets: new Map(), mails: [], logs: [], locked: false, acquires: 0, releases: 0,
     failOpen: false, failWrite: false, failFlush: false, failMail: false,
     beforeWrite: null, writes: 0, now: Date.UTC(2026,9,25,0,0,0), cache: new Map(), requests: [], usedTokens: new Set(), tokenSequence: 0, ...options,
   }
@@ -52,6 +52,7 @@ export function harness(options = {}) {
     getSheetByName: name => state.sheets.get(name) || null,
     insertSheet: name => { const sheet = new Sheet(name); state.sheets.set(name, sheet); return sheet },
   }
+  const sendMail = (...args) => { if (state.failMail) throw Error('mail failed'); state.mails.push(args) }
   const services = {
     Date: Clock,
     Utilities: {
@@ -82,7 +83,8 @@ export function harness(options = {}) {
       openById: () => { if (state.failOpen) throw Error('open failed'); return ss },
       flush: () => { if (state.failFlush) throw Error('flush failed') },
     },
-    GmailApp: { sendEmail: (...args) => { if (state.failMail) throw Error('mail failed'); state.mails.push(args) } },
+    GmailApp: { sendEmail: sendMail }, // Legacy fixture only.
+    MailApp: { sendEmail: sendMail },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: value => ({
       content: value, setMimeType() { return this }, setContent(v) { this.content = v; return this },
     }) },
@@ -101,7 +103,7 @@ export function harness(options = {}) {
       }
       throw Error('External network disabled in tests')
     } },
-    console: { error() {}, log() {} },
+    console: { error(value) { state.logs.push(String(value)) }, log(value) { if (state.failLogging) throw Error('logging unavailable'); state.logs.push(String(value)) } },
   }
   function assertPropertyWrite() {
     if (!state.locked) throw Error('unlocked property write')
