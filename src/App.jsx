@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import Chart from 'chart.js/auto'
 import { GAS_WEBAPP_URL, categories } from './data'
 import { createSaveController, callGAS as requestGAS } from './saveSubmission'
 import { completeRatings, createRequestScope, requestAI } from './diagnosis'
 import HumanVerification from './HumanVerification'
+import { leadErrors } from './leadValidation'
+import ScoreChart from './ScoreChart'
+import RenderBoundary from './RenderBoundary'
 
 const TURNSTILE_SITE_KEY = import.meta.env?.VITE_TURNSTILE_SITE_KEY || ''
 
@@ -26,9 +28,9 @@ export default function App() {
   const [challengeReset, setChallengeReset] = useState(0)
   const [analysisError, setAnalysisError] = useState('')
   const [planError, setPlanError] = useState('')
+  const [inputErrors, setInputErrors] = useState({})
+  const [saveUnconfirmed, setSaveUnconfirmed] = useState(false)
 
-  const chartRef      = useRef(null)
-  const chartInstance = useRef(null)
   const answerTimer = useRef(null)
   const answering = useRef(false)
   const ratingsSnapshot = useRef({})
@@ -41,12 +43,17 @@ export default function App() {
   const currentCategory = activeCategories[currentStep]
   const canGenerate = Boolean(aiSession && TURNSTILE_SITE_KEY && challengeToken && !isAnalyzing && !isGeneratingPlan)
 
-  const sendSave = (body) => requestGAS(GAS_WEBAPP_URL, body)
+  const sendSave = (body, options) => requestGAS(GAS_WEBAPP_URL, body, options)
   const saveController = useRef(null)
   if (!saveController.current) saveController.current = createSaveController({ send: sendSave })
 
-  const handleSubmitInfo = async () => {
-    if (!userInfo.email.trim() || !userInfo.name.trim() || !agreedToPolicy || isSaving) return
+  const handleSubmitInfo = async event => {
+    event.preventDefault()
+    if (!agreedToPolicy || isSaving) return
+    const errors = leadErrors(userInfo)
+    setInputErrors(errors)
+    if (Object.keys(errors).length) return
+    if (!event.currentTarget.reportValidity()) return
     if (!completeRatings(diagMode, ratingsSnapshot.current)) {
       setErrorMsg('回答を確認できませんでした。診断を最初からやり直してください。')
       return
@@ -54,16 +61,20 @@ export default function App() {
     const request = requestScope.current.start('save')
     if (!request) return
     setIsSaving(true)
+    setSaveUnconfirmed(true)
     setErrorMsg("")
     try {
       const data = await saveController.current.submit({
-        name: userInfo.name, email: userInfo.email, ratings, mode: diagMode,
-      })
+        name: userInfo.name, email: userInfo.email, ratings: ratingsSnapshot.current, mode: diagMode,
+      }, { signal: request.controller.signal })
       if (!requestScope.current.current(request)) return
       setAiSession(typeof data.aiSession === 'string' ? data.aiSession : '')
       setAppPhase('results')
     } catch (e) {
-      if (requestScope.current.current(request)) setErrorMsg(e.message || '保存を確認できませんでした。同じ画面からもう一度お試しください。')
+      if (requestScope.current.current(request)) {
+        setErrorMsg(e.message || '保存を確認できませんでした。同じ画面からもう一度お試しください。')
+        if (e.code === 'INVALID_INPUT') setSaveUnconfirmed(false)
+      }
     } finally {
       if (requestScope.current.current(request)) setIsSaving(false)
       requestScope.current.finish(request)
@@ -110,6 +121,7 @@ export default function App() {
     setChallengeToken(''); setChallengeReset(value => value + 1)
     setIsAnalyzing(false); setIsGeneratingPlan(false); setIsSaving(false)
     setIsTransitioning(false); setAgreedToPolicy(false); setErrorMsg('')
+    setInputErrors({}); setSaveUnconfirmed(false)
   }
 
   const handleAnswer = (rating) => {
@@ -143,50 +155,7 @@ export default function App() {
 
   const generateAIAnalysis = () => generateAI('get_advice')
   const generateActionPlan = () => generateAI('generate_plan')
-  useEffect(() => {
-    if (appPhase === 'results' && chartRef.current) {
-      const ctx = chartRef.current.getContext('2d')
-      if (chartInstance.current) chartInstance.current.destroy()
-      const isMobile = window.innerWidth < 768
-      chartInstance.current = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: activeCategories.map(c => c.name),
-          datasets: [{
-            label: '現状スコア',
-            data: activeCategories.map(c => ratings[c.name] || 0),
-            backgroundColor: 'rgba(26, 77, 46, 0.2)',
-            borderColor: '#1a4d2e',
-            borderWidth: 2,
-            pointBackgroundColor: activeCategories.map(c => ratings[c.name] <= 2 ? '#ef4444' : '#1a4d2e'),
-            pointRadius: 4,
-          }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            r: {
-              min: 0, max: 5,
-              ticks: { stepSize: 1, display: false },
-              grid: { color: 'rgba(0,0,0,0.05)' },
-              pointLabels: {
-                display: !isMobile,
-                font: { size: 10, weight: '600' },
-                color: '#475569',
-              },
-            },
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', padding: 12 },
-          },
-        },
-      })
-      const chart = chartInstance.current
-      return () => { chart.destroy(); if (chartInstance.current === chart) chartInstance.current = null }
-    }
-  }, [appPhase, ratings, activeCategories])
+
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 p-4 md:p-8">
@@ -260,7 +229,7 @@ export default function App() {
         </div>}
 
         {appPhase === 'lead_capture' && (
-          <div className="bg-white rounded-[2rem] p-10 md:p-14 shadow-2xl border border-slate-100 text-center animate-in">
+          <form noValidate onSubmit={handleSubmitInfo} className="bg-white rounded-[2rem] p-10 md:p-14 shadow-2xl border border-slate-100 text-center animate-in">
             <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mx-auto mb-8">
               <span className="text-4xl">✨</span>
             </div>
@@ -271,24 +240,29 @@ export default function App() {
             </p>
             <div className="max-w-md mx-auto space-y-6 mb-8 text-left">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">お名前 *</label>
-                <input type="text" value={userInfo.name}
-                  onChange={e => setUserInfo({...userInfo, name: e.target.value})}
-                  disabled={isSaving}
+                <label htmlFor="lead-name" className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">お名前 *</label>
+                <input id="lead-name" name="name" type="text" required maxLength={200} autoComplete="name" value={userInfo.name}
+                  aria-invalid={Boolean(inputErrors.name)} aria-describedby={inputErrors.name ? 'name-error' : undefined}
+                  onChange={e => { setUserInfo({...userInfo, name: e.target.value}); setInputErrors(errors => ({...errors, name: ''})) }}
+                  disabled={isSaving || saveUnconfirmed}
                   className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-none transition-all font-medium text-lg"
                   placeholder="姓名" />
+                {inputErrors.name && <p id="name-error" role="alert" className="mt-2 text-sm text-red-700">{inputErrors.name}</p>}
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">メールアドレス *</label>
-                <input type="email" value={userInfo.email}
-                  onChange={e => setUserInfo({...userInfo, email: e.target.value})}
-                  disabled={isSaving}
+                <label htmlFor="lead-email" className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">メールアドレス *</label>
+                <input id="lead-email" name="email" type="email" required maxLength={254} autoComplete="email" value={userInfo.email}
+                  aria-invalid={Boolean(inputErrors.email)} aria-describedby={inputErrors.email ? 'email-error' : undefined}
+                  onChange={e => { setUserInfo({...userInfo, email: e.target.value}); setInputErrors(errors => ({...errors, email: ''})) }}
+                  disabled={isSaving || saveUnconfirmed}
                   className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-none transition-all font-medium text-lg"
                   placeholder="ex@company.com" />
+                {inputErrors.email && <p id="email-error" role="alert" className="mt-2 text-sm text-red-700">{inputErrors.email}</p>}
               </div>
 
               <label className="flex items-start gap-3 cursor-pointer group">
                 <input type="checkbox"
+                  required disabled={isSaving || saveUnconfirmed}
                   checked={agreedToPolicy}
                   onChange={e => setAgreedToPolicy(e.target.checked)}
                   className="mt-1 w-5 h-5 accent-emerald-600 cursor-pointer flex-shrink-0" />
@@ -303,12 +277,13 @@ export default function App() {
             {errorMsg && (
               <div role="alert" className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl text-sm font-bold">{errorMsg}</div>
             )}
-            <button onClick={handleSubmitInfo}
+            {saveUnconfirmed && !isSaving && <p className="text-sm text-slate-600 mb-4">保存結果が未確認のため、入力内容を保持しています。同じボタンでもう一度確認できます。</p>}
+            <button type="submit"
               disabled={!userInfo.email.trim() || !userInfo.name.trim() || !agreedToPolicy || isSaving}
               className="w-full py-6 bg-emerald-700 text-white rounded-2xl font-black text-xl shadow-2xl hover:bg-emerald-800 disabled:bg-slate-200 disabled:shadow-none transition-all flex items-center justify-center gap-3 active:scale-95">
-              {isSaving ? "保存中..." : "📊 診断レポートを見る"}
+              {isSaving ? "保存中..." : saveUnconfirmed ? "保存を再確認する" : "📊 診断レポートを見る"}
             </button>
-          </div>
+          </form>
         )}
 
         {appPhase === 'results' && (
@@ -316,9 +291,7 @@ export default function App() {
 
             <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-slate-100">
               <h3 className="font-black text-slate-400 tracking-[0.2em] uppercase text-xs mb-8">Satisfaction Balance Radar</h3>
-              <div className="h-[400px] md:h-[550px] relative">
-                <canvas ref={chartRef}></canvas>
-              </div>
+              <ScoreChart categories={activeCategories} ratings={ratings} />
             </div>
 
             {errorMsg && (
@@ -336,7 +309,9 @@ export default function App() {
                 <p className="text-slate-500 font-medium">満足度スコアに基づく、経営者の「器」の解析結果</p>
               </div>
 
-              <HumanVerification sitekey={aiSession ? TURNSTILE_SITE_KEY : ''} resetKey={challengeReset} onToken={setChallengeToken} />
+              {(!aiAnalysis || !aiActionPlan) && <RenderBoundary message="安全確認を表示できませんでした。回答と診断結果は保持されています。" recoveryLabel="安全確認を再表示する">
+                <HumanVerification sitekey={aiSession ? TURNSTILE_SITE_KEY : ''} resetKey={challengeReset} onToken={setChallengeToken} />
+              </RenderBoundary>}
 
               {!aiAnalysis && !isAnalyzing ? (
                 <div className="text-center py-12">

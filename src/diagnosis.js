@@ -1,4 +1,5 @@
 import { categories } from './data.js'
+import { postJSON } from './transport.js'
 
 export const categoriesFor = mode => categories.filter(category => mode === 'full' || (mode === 'quick' && category.quick))
 
@@ -36,30 +37,25 @@ export function createRequestScope() {
 }
 
 export async function requestAI(endpoint, body, { signal, fetchImpl = fetch, timeoutMs = 45000 } = {}) {
-  const controller = new AbortController()
-  const abort = () => controller.abort()
-  signal?.addEventListener('abort', abort, { once: true })
-  if (signal?.aborted) abort()
-  let timedOut = false
-  const timer = setTimeout(() => { timedOut = true; abort() }, timeoutMs)
-  try {
-    const response = await fetchImpl(endpoint, { method: 'POST', body: JSON.stringify(body), signal: controller.signal })
-    if (!response.ok) throw new Error('AIとの通信を確認できませんでした。もう一度お試しください。')
-    const data = await response.json()
-    if (!data || data.status !== 'success') {
-      const error = new Error(typeof data?.message === 'string' ? data.message : 'AIの生成に失敗しました。もう一度お試しください。')
-      error.code = data?.code
-      throw error
-    }
-    const text = data[body.action === 'get_advice' ? 'analysis' : 'plan']
-    if (typeof text !== 'string' || !text.trim() || text.length > 6000) throw new Error('AIの応答を確認できませんでした。もう一度お試しください。')
-    return text
-  } catch (error) {
-    if (timedOut) throw new Error('AIの生成に時間がかかっています。少し待ってからもう一度お試しください。')
-    if (error instanceof SyntaxError || error instanceof TypeError) throw new Error('AIとの通信を確認できませんでした。もう一度お試しください。')
-    throw error
-  } finally {
-    clearTimeout(timer)
-    signal?.removeEventListener('abort', abort)
-  }
+  const invalid = 'AIの応答を確認できませんでした。安全確認後にもう一度お試しください。'
+  const data = await postJSON(endpoint, body, { signal, fetchImpl, timeoutMs, messages: {
+    network: 'AIとの通信を確認できませんでした。安全確認後にもう一度お試しください。',
+    timeout: 'AIの生成に時間がかかっています。少し待ち、安全確認後にもう一度お試しください。',
+    invalid, failed: 'AIの生成に失敗しました。安全確認後にもう一度お試しください。',
+    codes: {
+      INVALID_INPUT: '回答を確認できませんでした。診断スコアをご確認ください。AIを使うには診断をやり直してください。',
+      AI_ACCESS_REQUIRED: 'この診断の保存を確認できません。AIを使うには診断をやり直してください。',
+      AI_SESSION_EXPIRED: 'AIをご利用いただける時間を過ぎました。診断スコアは引き続き確認できます。',
+      AI_UNAVAILABLE: 'AIフィードバックは現在ご利用いただけません。診断スコアは引き続き確認できます。',
+      AI_BUSY: 'AIが混み合っています。少し待ち、安全確認後にもう一度お試しください。',
+      AI_LIMIT_REACHED: 'AIの利用上限に達しました。診断スコアをご確認いただくか、時間を置いてお試しください。',
+      HUMAN_VERIFICATION_REQUIRED: '安全確認をやり直してからもう一度お試しください。',
+      HUMAN_VERIFICATION_UNAVAILABLE: '安全確認の通信ができませんでした。少し待ってからもう一度お試しください。',
+      AI_UPSTREAM_ERROR: 'AIの生成を完了できませんでした。少し待ち、安全確認後にもう一度お試しください。',
+      AI_INVALID_RESPONSE: invalid,
+    },
+  } })
+  const text = data[body.action === 'get_advice' ? 'analysis' : 'plan']
+  if (typeof text !== 'string' || !text.trim() || text.length > 6000) throw Object.assign(new Error(invalid), { code: 'INVALID_RESPONSE' })
+  return text
 }

@@ -1,23 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { createTurnstileLoader } from './turnstile.js'
 
-let loading
-function loadTurnstile() {
-  if (window.turnstile) return Promise.resolve(window.turnstile)
-  if (!loading) {
-    loading = new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-      script.async = true
-      script.onload = () => {
-        if (window.turnstile) resolve(window.turnstile)
-        else { script.remove(); loading = null; reject(new Error('Verification unavailable')) }
-      }
-      script.onerror = () => { script.remove(); loading = null; reject(new Error('Verification unavailable')) }
-      document.head.appendChild(script)
-    })
-  }
-  return loading
-}
+let loadTurnstile
 
 export default function HumanVerification({ sitekey, resetKey, onToken }) {
   const container = useRef(null)
@@ -27,9 +11,10 @@ export default function HumanVerification({ sitekey, resetKey, onToken }) {
     let disposed = false
     let widget
     let api
+    const element = container.current
     setError(false)
     onToken('')
-    if (sitekey) loadTurnstile().then(turnstile => {
+    if (sitekey) (loadTurnstile ||= createTurnstileLoader())().then(turnstile => {
       if (disposed || !container.current) return
       api = turnstile
       widget = api.render(container.current, {
@@ -37,9 +22,16 @@ export default function HumanVerification({ sitekey, resetKey, onToken }) {
         callback: token => { if (!disposed) { setError(false); onToken(token) } },
         'expired-callback': () => { if (!disposed) onToken('') },
         'error-callback': () => { if (!disposed) { onToken(''); setError(true) } },
+        'timeout-callback': () => { if (!disposed) { onToken(''); setError(true) } },
       })
     }).catch(() => { if (!disposed) setError(true) })
-    return () => { disposed = true; if (widget !== undefined) api.remove(widget) }
+    return () => {
+      disposed = true
+      if (widget !== undefined) {
+        try { api.remove(widget) } catch { /* Clear the local widget even if the SDK failed. */ }
+      }
+      element?.replaceChildren()
+    }
   }, [sitekey, resetKey, retry, onToken])
 
   if (!sitekey) return <p className="text-sm text-slate-400">AIフィードバックは現在準備中です。診断スコアは上のグラフでご確認いただけます。</p>

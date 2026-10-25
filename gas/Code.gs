@@ -295,12 +295,13 @@ function runProtectedAi(payload, action, generate) {
   var config = aiConfiguration();
   if (!config) throw saveError('AI_UNAVAILABLE', 'AIフィードバックを現在ご利用いただけません。');
   var session = verifyAiSession(payload.aiSession, input, config);
-  var cache = CacheService.getScriptCache();
+  var cache = null;
   var cacheKey = 'ai_' + aiDigest(session.submissionId + '|' + session.context + '|' + action);
-  var cached = cache.get(cacheKey);
+  var cached = null;
+  try { cache = CacheService.getScriptCache(); cached = cache.get(cacheKey); } catch (err) { console.error('AI_CACHE_READ_FAILED'); }
   var result = { status: 'success' };
   var field = action === 'get_advice' ? 'analysis' : 'plan';
-  if (cached && cached.length <= 6000) { result[field] = cached; return result; }
+  if (typeof cached === 'string' && cached.trim() && cached.length <= 6000) { result[field] = cached; return result; }
   verifyAiHuman(payload.challengeToken, config);
   var lease = reserveAiAttempt(session, action, config);
   try {
@@ -362,7 +363,7 @@ function callClaude(prompt, maxTokens) {
 // =========================================================
 // 診断分析テキスト生成
 // =========================================================
-function generateAnalysis(name, ratings, mode) {
+function generateAnalysis(_name, ratings, mode) {
   var ratingsText = Object.entries(ratings).map(function(e) {
     return '・' + e[0] + ': ' + e[1] + '/5';
   }).join('\n');
@@ -374,11 +375,11 @@ function generateAnalysis(name, ratings, mode) {
   });
 
   var prompt =
-    name + ' 様の診断結果を分析してください。\n\n' +
+    '以下の診断結果を分析してください。\n\n' +
     '【各領域の自己評価（1=全く不満足 〜 5=非常に満足）】\n' + ratingsText + '\n\n' +
     '【課題領域（スコア2以下）】\n' + (lowScores.length > 0 ? lowScores.join('、') : 'なし') + '\n\n' +
     '経営者・起業家向けの深い洞察と具体的なフィードバックを日本語で提供してください（200〜300文字程度）。\n' +
-    '強みと主な課題を簡潔に伝え、' + name + ' 様に呼びかけるパーソナルな文体で書いてください。';
+    '強みと主な課題を簡潔に伝え、回答者に呼びかける親しみやすい文体で書いてください。';
 
   return callClaude(prompt, 768);
 }

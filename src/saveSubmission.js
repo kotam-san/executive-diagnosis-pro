@@ -1,10 +1,12 @@
+import { postJSON } from './transport.js'
+
 // One controller per diagnosis. Keep its ID after an ambiguous network failure.
 export function createSaveController({ send, createId = () => crypto.randomUUID() }) {
   let pending = null
   let inFlight = null
   let completed = null
 
-  function submit(input) {
+  function submit(input, { signal } = {}) {
     const payload = {
       action: 'save_only_v2',
       name: input.name.trim(),
@@ -20,11 +22,9 @@ export function createSaveController({ send, createId = () => crypto.randomUUID(
     if (inFlight) return inFlight
     if (!pending) pending = { signature, payload: { ...payload, submissionId: createId() } }
 
-    inFlight = Promise.resolve().then(() => send(pending.payload)).then(data => {
+    inFlight = Promise.resolve().then(() => send(pending.payload, { signal })).then(data => {
       if (data?.status !== 'success' || data.saved !== true || data.submissionId !== pending.payload.submissionId) {
-        const error = new Error(data?.message || '保存を確認できませんでした。同じ画面からもう一度お試しください。')
-        error.code = data?.code
-        throw error
+        throw new Error('保存を確認できませんでした。入力を変えずに、同じ画面からもう一度お試しください。')
       }
       completed = data
       return data
@@ -39,28 +39,17 @@ export function createSaveController({ send, createId = () => crypto.randomUUID(
   return { submit }
 }
 
-export async function callGAS(endpoint, body, { fetchImpl = fetch, timeoutMs = 30000 } = {}) {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    // Keep the existing simple POST: a JSON Content-Type would introduce preflight.
-    const response = await fetchImpl(endpoint, {
-      method: 'POST', body: JSON.stringify(body), signal: controller.signal,
-    })
-    if (!response.ok) throw new Error('通信を確認できませんでした。同じ画面からもう一度お試しください。')
-    const data = await response.json()
-    if (data.status !== 'success') {
-      const error = new Error(data.message || '保存を確認できませんでした。同じ画面からもう一度お試しください。')
-      error.code = data.code
-      throw error
-    }
-    return data
-  } catch (error) {
-    if (error.name === 'AbortError' || error instanceof TypeError || error instanceof SyntaxError) {
-      throw new Error('保存結果を確認できませんでした。入力を変えずに、同じ画面からもう一度お試しください。')
-    }
-    throw error
-  } finally {
-    clearTimeout(timer)
-  }
+export function callGAS(endpoint, body, { timeoutMs = 30000, ...options } = {}) {
+  const retry = '保存結果を確認できませんでした。入力を変えずに、同じ画面からもう一度お試しください。'
+  return postJSON(endpoint, body, { ...options, timeoutMs, messages: {
+    network: retry, timeout: retry, invalid: retry, failed: retry,
+    codes: {
+      INVALID_INPUT: '入力内容を確認してください。お名前・メールアドレス・回答が正しい場合は、同じ画面から再試行してください。',
+      BUSY: '保存処理が混み合っています。入力を変えずに、同じ画面からもう一度お試しください。',
+      ID_CONFLICT: '前回と異なる内容は送信できません。入力内容を前回の状態に戻してください。',
+      SCHEMA_MISMATCH: '集計シートの項目を確認する必要があります。管理者へお問い合わせください。',
+      CONFIG_ERROR: '保存先の設定を確認する必要があります。管理者へお問い合わせください。',
+      SAVE_FAILED: retry,
+    },
+  } })
 }

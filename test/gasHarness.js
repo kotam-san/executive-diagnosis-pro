@@ -70,10 +70,10 @@ export function harness(options = {}) {
       },
       deleteProperty(key) { assertPropertyWrite(); delete props[key]; return this },
     }) },
-    CacheService: { getScriptCache: () => ({
-      get: key => { const entry = state.cache.get(key); return entry && entry.expiresAt > state.now ? entry.value : null },
+    CacheService: { getScriptCache: () => { if (state.failCacheService) throw Error('cache unavailable'); return ({
+      get: key => { if (state.failCacheRead) throw Error('cache unavailable'); const entry = state.cache.get(key); return entry && entry.expiresAt > state.now ? entry.value : null },
       put: (key, value, seconds) => { if (state.failCacheWrite) throw Error('cache unavailable'); state.cache.set(key, { value, expiresAt: state.now + seconds * 1000 }) },
-    }) },
+    }) } },
     LockService: { getScriptLock: () => ({
       tryLock: () => { if (state.locked || state.forceBusy) return false; state.locked = true; state.acquires++; return true },
       releaseLock: () => { state.locked = false; state.releases++ },
