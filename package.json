@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && wrangler deploy"
+    "deploy": "vite build && wrangler deploy",
+    "test": "node --test test/*.test.js",
+    "verify:baseline": "node scripts/verify-production-baseline.mjs"
   },
   "dependencies": {
     "chart.js": "^4.4.6",

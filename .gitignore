@@ -8,3 +8,9 @@ dist
 .env.local
 .env.*.local
 .dev.vars
+.env.*
+!.env.example
+.dev.vars.*
+/audit/
+/.clasp.json
+/gas/.clasp.json

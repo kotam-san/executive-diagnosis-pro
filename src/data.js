@@ -1,4 +1,4 @@
-export const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxer99EX4FLau9oS_mowFEhaCjbWgAbacLEXyVI3wK_pDQX9wQ07tGV5riIQPt8WFBB/exec"
+export const GAS_WEBAPP_URL = import.meta.env?.VITE_GAS_WEBAPP_URL || "https://script.google.com/macros/s/AKfycbxer99EX4FLau9oS_mowFEhaCjbWgAbacLEXyVI3wK_pDQX9wQ07tGV5riIQPt8WFBB/exec"
 
 export const categories = [
   { name: "ビジネス・仕事",   question: "今の仕事にやりがいを感じていますか？経営者として成果を実感できていますか？",       domain: "経営・事業", quick: true },

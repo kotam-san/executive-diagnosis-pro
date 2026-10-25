@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Chart from 'chart.js/auto'
 import { GAS_WEBAPP_URL, categories } from './data'
+import { createSaveController, callGAS as requestGAS } from './saveSubmission'
 
 export default function App() {
   const [appPhase, setAppPhase]               = useState('welcome')
@@ -25,29 +26,28 @@ export default function App() {
     : categories
 
   const callGAS = async (body) => {
-    const res  = await fetch(GAS_WEBAPP_URL, { method: 'POST', body: JSON.stringify(body) })
+    const res = await fetch(GAS_WEBAPP_URL, { method: 'POST', body: JSON.stringify(body) })
     const data = await res.json()
     if (data.status !== 'success') throw new Error(data.message || 'GASエラー')
     return data
   }
+  const sendSave = (body) => requestGAS(GAS_WEBAPP_URL, body)
+  const saveController = useRef(null)
+  if (!saveController.current) saveController.current = createSaveController({ send: sendSave })
 
   const handleSubmitInfo = async () => {
-    if (!userInfo.email || !userInfo.name) return
+    if (!userInfo.email.trim() || !userInfo.name.trim() || !agreedToPolicy || isSaving) return
     setIsSaving(true)
     setErrorMsg("")
     try {
-      await callGAS({
-        action: 'save_only',
-        name: userInfo.name,
-        email: userInfo.email,
-        ratings,
-        mode: diagMode,
+      await saveController.current.submit({
+        name: userInfo.name, email: userInfo.email, ratings, mode: diagMode,
       })
+      setAppPhase('results')
     } catch (e) {
-      console.error("保存エラー:", e.message)
+      setErrorMsg(e.message || '保存を確認できませんでした。同じ画面からもう一度お試しください。')
     } finally {
       setIsSaving(false)
-      setAppPhase('results')
     }
   }
 
@@ -224,6 +224,7 @@ export default function App() {
                 <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">お名前 *</label>
                 <input type="text" value={userInfo.name}
                   onChange={e => setUserInfo({...userInfo, name: e.target.value})}
+                  disabled={isSaving}
                   className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-none transition-all font-medium text-lg"
                   placeholder="姓名" />
               </div>
@@ -231,6 +232,7 @@ export default function App() {
                 <label className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">メールアドレス *</label>
                 <input type="email" value={userInfo.email}
                   onChange={e => setUserInfo({...userInfo, email: e.target.value})}
+                  disabled={isSaving}
                   className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-none transition-all font-medium text-lg"
                   placeholder="ex@company.com" />
               </div>
@@ -248,8 +250,11 @@ export default function App() {
               </label>
             </div>
 
+            {errorMsg && (
+              <div role="alert" className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl text-sm font-bold">{errorMsg}</div>
+            )}
             <button onClick={handleSubmitInfo}
-              disabled={!userInfo.email || !userInfo.name || !agreedToPolicy || isSaving}
+              disabled={!userInfo.email.trim() || !userInfo.name.trim() || !agreedToPolicy || isSaving}
               className="w-full py-6 bg-emerald-700 text-white rounded-2xl font-black text-xl shadow-2xl hover:bg-emerald-800 disabled:bg-slate-200 disabled:shadow-none transition-all flex items-center justify-center gap-3 active:scale-95">
               {isSaving ? "保存中..." : "📊 診断レポートを見る"}
             </button>
@@ -346,6 +351,8 @@ export default function App() {
             </div>
 
             <button onClick={() => {
+              saveController.current = createSaveController({ send: sendSave })
+              setAgreedToPolicy(false)
               setAppPhase('welcome'); setRatings({}); setUserInfo({name:'',email:''})
               setAiAnalysis(''); setAiActionPlan(''); setIsMeetingRequested(false); setErrorMsg(''); setCurrentStep(0)
             }} className="w-full py-8 text-slate-400 font-black hover:text-slate-600 transition-all uppercase tracking-[0.3em] text-xs">
