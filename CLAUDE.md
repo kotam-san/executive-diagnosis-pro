@@ -14,5 +14,5 @@ Claude が実装し、Codex CLI が独立レビューを担当する。Codex 側
 
 - 計画が完成したら、実装に入る前に「Codexにも見せますか？」と1回だけ聞く。実装後・push 前にも差分レビューを1回だけ提案する。どちらもゲートにしない（見せないなら即進む）。1箇所の修正や定型作業では聞かない。
 - 走らせる前に、聞かずに `codex --version` と `npm view @openai/codex version` を比べて1行で報告する（例：「Codex CLI 0.x.x（最新）・既定モデルで走らせます」）。`-m` は付けず既定モデルで走らせる。更新が要るときだけユーザーの了承を取り、`codex update` → `codex exec -s read-only "1+1の答えを数字だけで返して"` で既定モデルを1回試す → 本番の順。版確認の安全網として `.claude/settings.local.json` の hook（ONEPLANETManagement の `codex-version-gate.py`）が動く。
-- 計画レビュー：`codex exec -s read-only -` に計画本文と観点を標準入力で渡す。差分レビュー：`codex review --base <base ブランチ> "<指示>"`。数分かかるのでバックグラウンドで実行する。
+- 計画レビュー：`codex exec -s read-only -` に計画本文と観点を標準入力で渡す。差分レビュー：`codex exec -` に「`git diff <base ブランチ>...HEAD` をレビュー」と観点を標準入力で渡す（`codex review --base` は独自の指示文と併用できないため使わない）。数分かかるのでバックグラウンドで実行する。
 - Claude 自身のレビュー結果を Codex に渡さない。Codex の指摘は自動で反映せず、要約して採否をユーザーに戻す。

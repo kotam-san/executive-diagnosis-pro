@@ -64,10 +64,25 @@ test('unreadable save counters are rebuilt instead of blocking leads', () => {
   assert.equal(JSON.parse(h.props.SAVE_BUDGET).saved, 1)
 })
 
-test('a counter write failure after the row is written keeps the save successful', () => {
-  const h = harness({ failPropertyWrite: true })
-  const result = h.post(payload(h.ctx))
-  assert.equal(result.saved, true); assert.equal(rows(h), 2)
+test('a counter write failure stops the save before any row or mail, and the same ID can retry', () => {
+  const h = harness({ failPropertyWrite: true, props: { SAVE_LIMIT_HOURLY: '1', NOTIFY_LIMIT_HOURLY: '1' } })
+  const p = payload(h.ctx)
+  for (let i = 0; i < 3; i++) assert.equal(h.post(p).code, 'SAVE_FAILED')
+  assert.equal(h.state.writes, 0); assert.equal(h.state.mails.length, 0); assert.equal(h.state.locked, false)
+  h.state.failPropertyWrite = false
+  assert.equal(h.post(p).saved, true); assert.equal(rows(h), 2)
+  assert.equal(h.post(payload(h.ctx, 'quick', { submissionId: id(2) })).code, 'SAVE_LIMITED')
+})
+
+test('a failed notification keeps the carried-over omitted count for the next sent mail', () => {
+  const h = harness({ props: { NOTIFY_LIMIT_HOURLY: '1' } })
+  h.post(payload(h.ctx, 'quick', { submissionId: id(1) }))
+  h.post(payload(h.ctx, 'quick', { submissionId: id(2) })); h.post(payload(h.ctx, 'quick', { submissionId: id(3) }))
+  h.state.now += HOUR; h.state.failMail = true
+  assert.equal(h.post(payload(h.ctx, 'quick', { submissionId: id(4) })).notification, 'failed')
+  h.state.now += HOUR; h.state.failMail = false
+  assert.equal(h.post(payload(h.ctx, 'quick', { submissionId: id(5) })).notification, 'sent')
+  assert.match(h.state.mails.at(-1)[2], /2 件/)
 })
 
 test('owner helper reports save and notification counts without lead data', () => {

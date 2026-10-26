@@ -3,6 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { loadEnv } from 'vite'
 import { validateReleaseConfig } from './release-config.mjs'
+import { GAS_WEBAPP_URL } from '../src/data.js'
 
 const args = process.argv.slice(2)
 const release = args.includes('--release')
@@ -13,7 +14,8 @@ const releaseKey = release ? (() => {
   validateReleaseConfig(env)
   return env.VITE_TURNSTILE_SITE_KEY
 })() : null
-let releaseKeyFound = false
+let releaseKeyFound = false, endpointFound = false
+const deploymentUrls = /https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec/g
 const headers = await fs.readFile(path.join(root, '_headers'), 'utf8')
 const html = await fs.readFile(path.join(root, 'index.html'), 'utf8')
 assert.equal(headers, await fs.readFile('public/_headers', 'utf8'), 'build must carry the reviewed security headers')
@@ -31,6 +33,12 @@ for(const asset of scripts) {
   assert.ok(!/sk-ant-[A-Za-z0-9_-]{16,}/.test(source), 'no provider secret in browser code')
   assert.ok(!/local-browser-test-key|127\.0\.0\.1:4187|localhost:4187/.test(source), 'production build cannot point to mock services')
   if (releaseKey && source.includes(releaseKey)) releaseKeyFound = true
+  if (release) {
+    // Answers and contact details must go only to the approved GAS deployment.
+    for (const url of source.match(deploymentUrls) || []) assert.equal(url, GAS_WEBAPP_URL, 'release build must not contain another GAS deployment')
+    if (source.includes(GAS_WEBAPP_URL)) endpointFound = true
+  }
 }
+if (release) assert.ok(endpointFound, 'release build must send to the approved GAS deployment')
 if (release) assert.ok(releaseKeyFound, 'release build must contain the configured public Turnstile site key; rebuild with npm run build:release')
 console.log(release ? 'Release build, public configuration and security headers verified.' : 'Built assets and security headers verified.')

@@ -149,6 +149,7 @@ function handleSaveOnly(payload) {
   // Retrying an acknowledged or ambiguous save never sends a second notification.
   var notification = saved.duplicate ? 'skipped_duplicate'
     : saved.notify ? sendRegistrationNotification(submission.name, submission.email, submission.mode, saved.omitted) : 'suppressed';
+  if (notification === 'failed' && saved.omitted > 0) restoreUnreported(saved.omitted);
   var aiSession = null;
   // AI configuration failures must not turn an acknowledged lead save into a failure.
   try { aiSession = issueAiSession(submission); } catch (err) { console.error('AI_SESSION_UNAVAILABLE'); }
@@ -542,6 +543,20 @@ function planSave(props) {
   return plan;
 }
 
+// A failed mail did not report the omitted count, so carry it to the next one.
+function restoreUnreported(count) {
+  try {
+    var lock = LockService.getScriptLock();
+    if (!lock.tryLock(5000)) { console.error('NOTIFY_COUNT_RESTORE_FAILED'); return; }
+    try {
+      var props = PropertiesService.getScriptProperties();
+      var budget = readSaveBudget(props, japanWindow(Date.now()).hour);
+      budget.unreported += count;
+      props.setProperty('SAVE_BUDGET', JSON.stringify(budget));
+    } finally { lock.releaseLock(); }
+  } catch (err) { console.error('NOTIFY_COUNT_RESTORE_FAILED'); }
+}
+
 function saveToSheet(submission) {
   var sheetId = getSheetId();
   if (!sheetId) throw saveError('CONFIG_ERROR', '保存先が設定されていません。管理者へお問い合わせください。');
@@ -552,6 +567,9 @@ function saveToSheet(submission) {
     if (findDuplicate(ss, submission)) return { duplicate: true };
     var props = PropertiesService.getScriptProperties();
     var plan = planSave(props);
+    // Persist the reservation before any side effect so a storage fault cannot lift the caps.
+    // Nothing has been written yet, so the client can retry with the same ID.
+    try { props.setProperty('SAVE_BUDGET', JSON.stringify(plan.budget)); } catch (err) { console.error('SAVE_BUDGET_WRITE_FAILED'); throw err; }
     var fields = DIAGNOSIS_FIELDS[submission.mode];
     var sheetName = submission.mode === 'quick' ? 'クイック診断' : '精密診断';
     var sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
@@ -585,8 +603,6 @@ function saveToSheet(submission) {
     ['氏名', 'メール'].forEach(function(header) { sheet.getRange(rowNumber, headers.indexOf(header) + 1).setNumberFormat('@'); });
     sheet.getRange(rowNumber, 1, 1, headers.length).setValues([values]);
     SpreadsheetApp.flush();
-    // A counter failure after the row is committed must not turn the save into a failure.
-    try { props.setProperty('SAVE_BUDGET', JSON.stringify(plan.budget)); } catch (err) { console.error('SAVE_BUDGET_WRITE_FAILED'); }
     return { duplicate: false, notify: plan.notify, omitted: plan.omitted };
   } finally {
     lock.releaseLock();

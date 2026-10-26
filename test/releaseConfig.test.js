@@ -31,9 +31,17 @@ function fakeDist(script) {
 }
 const verify=(root,env={},release=true)=>spawnSync(process.execPath,['scripts/verify-build.mjs',root,...(release?['--release']:[])],{encoding:'utf8',env:{...process.env,...env}})
 
-test('release artifact check accepts a build that carries the configured public site key',()=>{
-  const result=verify(fakeDist('const k="0x4AAAAA-example-public-key"'),good)
+test('release artifact check accepts a build that carries the configured public site key and approved endpoint',()=>{
+  const result=verify(fakeDist(`const k="0x4AAAAA-example-public-key",u="${GAS_WEBAPP_URL}"`),good)
   assert.equal(result.status,0,result.stderr)
+})
+test('release artifact check rejects a build that still points at a different GAS deployment',()=>{
+  const other='https://script.google.com/macros/s/AKfycbTestDeploymentForStagingOnly000000000000/exec'
+  assert.notEqual(verify(fakeDist(`const k="0x4AAAAA-example-public-key",u="${other}"`),good).status,0)
+  assert.notEqual(verify(fakeDist(`const k="0x4AAAAA-example-public-key",u="${GAS_WEBAPP_URL}",v="${other}"`),good).status,0)
+})
+test('release artifact check rejects a build without the approved endpoint',()=>{
+  assert.notEqual(verify(fakeDist('const k="0x4AAAAA-example-public-key",u="/test-gas"'),good).status,0)
 })
 test('release artifact check rejects a build made without the public site key',()=>{
   const result=verify(fakeDist('const k=""'),good)
