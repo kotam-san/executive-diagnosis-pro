@@ -1,10 +1,6 @@
 # 公開版の管理と配備
 
-工程2のAI保護を含む変更では、[AI-SECURITY.md](AI-SECURITY.md)の設定とリリース条件も確認してください。この変更はまだ本番には反映していません。
-
-工程3の復旧性の修正と、反映前に残る確認は[STEP3-VERIFICATION.md](STEP3-VERIFICATION.md)を参照してください。
-
-工程4で依存・ヘッダー・CI・運用手順を準備しました。[STEP4-VERIFICATION.md](STEP4-VERIFICATION.md)のブラウザ条件と未確認事項、[OPERATIONS.md](OPERATIONS.md)のMailApp権限・監視担当・同意／保持方針も、反映前に確認してください。
+工程2〜4（AI保護・復旧性・依存とヘッダーと運用）は、2026-10-26にGASバージョン18と画面として公開しました（下記「2026-10-26 工程2〜4の公開」）。設定とリリース条件は[AI-SECURITY.md](AI-SECURITY.md)、検証の経緯は[STEP3-VERIFICATION.md](STEP3-VERIFICATION.md)と[STEP4-VERIFICATION.md](STEP4-VERIFICATION.md)、運用上の残件（監視担当・同意／保持方針）は[OPERATIONS.md](OPERATIONS.md)を参照してください。
 
 ## 2026-10-19公開版のソース回収
 
@@ -27,12 +23,25 @@ AIコーチを速くするため、10/19版のGASに次の変更だけを加え�
 
 バージョン17は、保存処理がバージョン16と同じです（旧`save_only`と保存v2の両方に対応）。下記の復元の注意で「GAS16」とある箇所は、バージョン17にもそのまま当てはまります。
 
+## 2026-10-26 工程2〜4の公開（GASバージョン18）
+
+mainの`74bed2e`（PR #1・#2）を公開しました。GASを先に、画面を直後に反映しています。
+
+- ソース：`production-2026-10-26-v18`タグ
+- 記録：[releases/production-2026-10-26-v18.json](../releases/production-2026-10-26-v18.json)。画面アセットの指紋も含み、`scripts/verify-production-baseline.mjs`はこの記録と照合する。
+- 事前設定：Turnstileウィジェット「executive-diagnosis-pro AI coach」（許可ホストは本番画面のみ、モードは管理）を作成。GASプロパティに`TURNSTILE_SECRET_KEY`と`AI_SESSION_SECRET`を追加し、値はチャット・ログ・Gitに出していない。利用上限は既定値のまま。
+- GAS：エディタのコードがバージョン17と一致することを確かめてから、`Code.gs`と`appsscript.json`を`74bed2e`の内容に置き換えた。置き換え後もSHA-256で一致を確認し、既存のデプロイを新バージョンに更新した。権限の再承認画面は出なかった。
+- 画面：`VITE_TURNSTILE_SITE_KEY`を付けて`npm run build:release`と`npm run deploy:built`を実行した（`deploy:built`の検査もこの変数を読むため、両方に付ける）。
+- 確認：`npm run healthcheck -- --require-security-headers`が成功。所有者が本番画面でクイック診断を行い、人間確認・分析・プラン・通知メールが動いた。GASの実行はすべて完了し、`inspectOperations`とシートで保存2件・通知2件・AI生成2回を確認した。
+
 ## 現在の公開版
 
 | 対象 | 現在の公開版 | 更新前の復元先 |
 | --- | --- | --- |
-| Cloudflare Worker | `e995022a-9263-4745-a203-04194a20e5b4`（2026-10-19） | `430442b6-8748-4aee-a2a2-4215cda233fe` |
-| GAS | バージョン17（2026-10-26） | バージョン16 |
+| Cloudflare Worker | `da4a0827-b33a-4eed-946b-2e2bff6d3335`（2026-10-26） | `e995022a-9263-4745-a203-04194a20e5b4` |
+| GAS | バージョン18（2026-10-26） | バージョン17 |
+
+工程2〜4のGAS（バージョン18）は、旧画面のAI呼び出しを受け付けません。画面を`e995022a`へ戻すときは、GASもバージョン17へ戻します（保存はどちらの組み合わせでも動く）。
 
 ## 現在のGit連携
 
