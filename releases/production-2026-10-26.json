@@ -11,7 +11,9 @@
   "gas_deployment_id_prefix": "AKfycbxer99EX4",
   "gas_version": 17,
   "gas_version_description": "2026-10-26 AIコーチ高速化（Sonnet 5.5・思考オフ・記号なしの短文）",
-  "rollback": { "gas_version": 16 },
+  "rollback": {
+    "gas_version": 16
+  },
   "source_sha256": {
     "gas/Code.gs": "20d9ccf66a31e66467f8070bfe546d7da0c6887bb505dbd610375c77475ba08f"
   },
@@ -19,11 +21,11 @@
     "Before the change, the editor code matched the 2026-10-19 record (gas/Code.gs af9da514...).",
     "After replacing it, the editor code matched the committed gas/Code.gs by SHA-256, and the project was saved.",
     "The existing web app deployment (same ID and URL, access: everyone, runs as owner) was edited to a new version; it reported version 17.",
-    "npm test passed (82 tests) with Claude requests mocked."
+    "npm test passed (82 tests) with Claude requests mocked.",
+    "2026-10-26: the owner ran one diagnosis on the live screen; analysis and action plan were generated as plain text without Markdown symbols."
   ],
   "unverified": [
-    "Whether the Claude API accepts the new request (Sonnet 5.5 with thinking between_tools) in production.",
-    "Response time and output quality on the live screen."
+    "Response time was not measured; the owner judged the output acceptable, slightly shorter than before."
   ],
   "scope": "GAS-only hotfix on top of the 2026-10-19 production source: Claude model, thinking off, plain-text prompts, text-block extraction. The unreleased stage 2-4 changes are not included."
 }
