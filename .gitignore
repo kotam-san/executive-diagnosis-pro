@@ -14,3 +14,5 @@ dist
 /audit/
 /.clasp.json
 /gas/.clasp.json
+/dist-test/
+/.claude/settings.local.json

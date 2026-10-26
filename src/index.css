@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss" source(none);
+@source "./";
+@source "../index.html";
 
 body {
   font-family: 'Noto Sans JP', sans-serif;
