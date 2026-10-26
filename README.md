@@ -8,7 +8,7 @@
 
 [工程3の検証結果](docs/STEP3-VERIFICATION.md)：追加修正の内容、現在の検証結果と未確認事項。
 
-[工程4の検証結果](docs/STEP4-VERIFICATION.md)：依存監査、CSP、CI、狭い画面の検証。[日常運用と障害対応](docs/OPERATIONS.md)も参照してください。
+[工程4の検証結果](docs/STEP4-VERIFICATION.md)：依存監査、CSP、CI、狭い画面の検証。[日常運用と障害対応](docs/OPERATIONS.md)と[定期メンテナンスと監査](docs/MAINTENANCE.md)も参照してください。
 
 ## ソースと公開版
 
