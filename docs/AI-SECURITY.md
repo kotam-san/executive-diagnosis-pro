@@ -49,7 +49,7 @@ Turnstileトークンは使い回さず、生成の完了・失敗後にウィ�
 | GASスクリプトプロパティ | `TURNSTILE_SECRET_KEY` | 対応する秘密鍵。VITE変数・Gitへ保存しない |
 | GASスクリプトプロパティ | `AI_SESSION_SECRET` | 推測困難な32文字以上の独立した署名鍵。例：安全な乱数32バイトを16進文字列にしたもの |
 | GASスクリプトプロパティ | `TURNSTILE_ALLOWED_HOSTNAMES` | 任意。既定は`executive-diagnosis-pro.kota-m.workers.dev`。複数はカンマ区切り |
-| GASスクリプトプロパティ | `CLAUDE_MODEL` | 任意。既定は`claude-sonnet-4-5`。`claude-`で始まるIDのみ受け付け、不正値ではAIを止める（利用枠は消費しない） |
+| GASスクリプトプロパティ | `CLAUDE_MODEL` | 任意。既定は`claude-sonnet-5-5`。`claude-`で始まるIDのみ受け付け、不正値ではAIを止める（利用枠は消費しない） |
 | GASスクリプトプロパティ | `SAVE_LIMIT_HOURLY` | 任意。新規保存の1時間あたり上限。既定120（1〜5000）。超過時は`SAVE_LIMITED`、書き込みなし |
 | GASスクリプトプロパティ | `NOTIFY_LIMIT_HOURLY` | 任意。登録通知メールの1時間あたり上限。既定20（1〜500）。超過分は送らず、次に送る通知に省略件数を記載 |
 
@@ -61,7 +61,14 @@ Turnstileは診断が動作するiframe内に置かれるため、許可ホス�
 
 ## モデルの選択
 
-2026-10-26時点（Anthropicの公開情報、2026-10-06更新分）で`claude-sonnet-4-5`は現役で、廃止予定は出ていません。現行のSonnetは`claude-sonnet-5-5`です。切り替える場合は先に`node --env-file-if-exists=eval/.env.local eval/run.mjs --model claude-sonnet-5-5`で出力を比べます（API費用が発生）。Sonnet 5.5は思考が既定で有効なため、現在の出力上限（分析768・プラン1,024トークン）では途中で止まり`AI_INVALID_RESPONSE`になる可能性があります。評価で途中切れの有無を確認し、必要なら上限を見直してから`CLAUDE_MODEL`を変更します。
+既定は最新のSonnet（2026-10-26時点で`claude-sonnet-5-5`）とする。Sonnet 5.5は何も指定しないと思考してから答えるため遅くなり、出力上限（分析768・プラン1,024トークン）で途中切れする恐れもある。短いコーチ文に思考は不要なので、Sonnet 5.5のときだけ`thinking: {type: "between_tools"}`（思考オフ）を送る。この指定は他のモデルではエラーになるため、`CLAUDE_MODEL`で別モデルに戻したときは送らない。
+
+最新版を自動で指す指定（エイリアス）はなく、Sonnetは世代ごとにAPIの仕様が変わってきたため、自動では追わない。新しいSonnetが出たら次の順で更新する。
+
+1. Anthropicの移行ガイドで、思考・出力設定の変更点を確認する。
+2. `gas/Code.gs`の`DEFAULT_CLAUDE_MODEL`と思考オフの条件を新しいIDに合わせ、`npm test`を通す。
+3. `node --env-file-if-exists=eval/.env.local eval/run.mjs`で本番版と比べ、速さ・字数・途中切れを確認する（API費用が発生）。
+4. `docs/RELEASE.md`の手順でGASへ反映する。急ぎで戻すときは`CLAUDE_MODEL`に旧IDを設定する。
 
 Cloudflareが公開しているテスト用secret keyは本番設定として拒否する。本番キーの有効性と実際のチャレンジ連携は、反映前に承認された範囲で別途確認する。
 

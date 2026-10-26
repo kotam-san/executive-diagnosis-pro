@@ -175,5 +175,16 @@ const order = job => [versions.findIndex(v => v.id === job.version), cases.findI
 results.sort((a, b) => { const x = order(a), y = order(b); for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1; return 0 })
 fs.writeFileSync(path.join(outDir, 'results.json'), JSON.stringify(results.map(({ request, ...r }) => ({ ...r, requestBody: request.body })), null, 2))
 report(results, outDir)
-const usage = results.reduce((sum, r) => ({ input: sum.input + (r.data?.usage?.input_tokens ?? 0), output: sum.output + (r.data?.usage?.output_tokens ?? 0) }), { input: 0, output: 0 })
-console.log(`\n完了：${path.relative(root, outDir)}/report.md　入力${usage.input}・出力${usage.output}トークン（Sonnet 4.5 単価で約$${((usage.input * 3 + usage.output * 15) / 1e6).toFixed(3)}）`)
+// 100万トークンあたりのドル単価（入力, 出力）。表にないモデルは費用を出さない
+const prices = { 'claude-sonnet-4-5': [3, 15], 'claude-sonnet-5-5': [2, 10] }
+const usage = results.reduce((sum, r) => {
+  const input = r.data?.usage?.input_tokens ?? 0, output = r.data?.usage?.output_tokens ?? 0
+  const price = prices[r.request.body.model]
+  return { input: sum.input + input, output: sum.output + output, cost: price && sum.cost !== null ? sum.cost + (input * price[0] + output * price[1]) / 1e6 : null }
+}, { input: 0, output: 0, cost: 0 })
+const msOf = (version, action) => results.filter(r => r.version === version && r.action === action && r.status === 200).map(r => r.ms).sort((a, b) => a - b)
+for (const version of versions) for (const action of ['analysis', 'plan']) {
+  const ms = msOf(version.id, action)
+  if (ms.length) console.log(`${version.id} ${action}：中央値${ms[Math.floor(ms.length / 2)]}ms・最大${ms[ms.length - 1]}ms（${ms.length}件）`)
+}
+console.log(`\n完了：${path.relative(root, outDir)}/report.md　入力${usage.input}・出力${usage.output}トークン（${usage.cost === null ? '単価未登録のモデルを含むため費用は未計算' : `約$${usage.cost.toFixed(3)}`}）`)

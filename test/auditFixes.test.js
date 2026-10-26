@@ -130,8 +130,20 @@ function aiRun(props) {
 
 test('the Claude model defaults to the current ID and can be changed by script property', () => {
   const model = run => JSON.parse(run.h.state.requests.find(r => r.url.includes('anthropic')).init.payload).model
-  assert.equal(model(aiRun({})), 'claude-sonnet-4-5')
-  assert.equal(model(aiRun({ CLAUDE_MODEL: 'claude-sonnet-5-5' })), 'claude-sonnet-5-5')
+  assert.equal(model(aiRun({})), 'claude-sonnet-5-5')
+  assert.equal(model(aiRun({ CLAUDE_MODEL: 'claude-sonnet-4-5' })), 'claude-sonnet-4-5')
+})
+
+test('AI prompts ask for plain text within the length, because the screen shows Markdown symbols as-is', () => {
+  const { h } = aiRun({})
+  const prompt = JSON.parse(h.state.requests.find(r => r.url.includes('anthropic')).init.payload).messages[0].content
+  assert.ok(prompt.includes('**') && prompt.includes('300文字を超えないでください'))
+})
+
+test('thinking is turned off only for Sonnet 5.5, since other models reject the setting', () => {
+  const body = run => JSON.parse(run.h.state.requests.find(r => r.url.includes('anthropic')).init.payload)
+  assert.deepEqual(body(aiRun({})).thinking, { type: 'between_tools' })
+  assert.equal(body(aiRun({ CLAUDE_MODEL: 'claude-sonnet-4-5' })).thinking, undefined)
 })
 
 test('an invalid Claude model setting fails before reserving AI quota', () => {
