@@ -1,6 +1,6 @@
 # 経営者の「器」診断 Pro — Claude Code の作業ルール
 
-構成・検証手順は [README.md](README.md)、AI 保護は [docs/AI-SECURITY.md](docs/AI-SECURITY.md)、運用は [docs/OPERATIONS.md](docs/OPERATIONS.md)、公開手順は [docs/RELEASE.md](docs/RELEASE.md)。
+構成・検証手順は [README.md](README.md)、AI 保護は [docs/AI-SECURITY.md](docs/AI-SECURITY.md)、運用は [docs/OPERATIONS.md](docs/OPERATIONS.md)、公開手順は [docs/RELEASE.md](docs/RELEASE.md)、定期メンテナンスと監査は [docs/MAINTENANCE.md](docs/MAINTENANCE.md)。
 
 ## 本番に触れる操作
 
