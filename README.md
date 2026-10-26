@@ -16,8 +16,8 @@
 
 - 本番画面：<https://executive-diagnosis-pro.kota-m.workers.dev/>
 - ホームページの埋め込み：<https://www.1planet.jp/keieishasindanpro>
-- 公開版を識別するGitタグ：`production-2026-10-19`
-- アセットとソースの指紋：[releases/production-2026-10-19.json](releases/production-2026-10-19.json)
+- 公開版を識別するGitタグ：`production-2026-10-26`（GASバージョン17。画面は`production-2026-10-19`のまま）
+- アセットとソースの指紋：画面は[releases/production-2026-10-19.json](releases/production-2026-10-19.json)、GASは[releases/production-2026-10-26.json](releases/production-2026-10-26.json)
 - 公開・復元と今後の記録方法：[docs/RELEASE.md](docs/RELEASE.md)
 
 この取り込みは現在の公開版を保存するものです。機能・安全性の追加改善は別の変更で扱います。依存関係も公開版のlockfileを保持しています。
@@ -58,6 +58,8 @@ npm run verify:baseline -- --live
 | `test/` | 外部送信を伴わない保存・AI保護・障害復旧のテスト |
 | `test/fixtures/Code.v15.gs` | 旧GASとの互換性確認専用。配備には使わない |
 | `releases/` | 公開版とGitソースを対応付ける記録 |
+| `eval/` | AIフィードバックの評価ランナー（`--dry-run`は費用なし。実行するとClaude APIの費用が発生） |
+| `CLAUDE.md`・`AGENTS.md`・`.codex/` | Claude Code の作業ルールと、Codex CLI による独立レビューの設定 |
 
 ## GASの設定と秘密情報
 
@@ -65,4 +67,4 @@ GAS側のスクリプトプロパティに`CLAUDE_API_KEY`、`SHEET_ID`、`NOTIF
 
 `VITE_GAS_WEBAPP_URL`は検証用エンドポイントの差し替えに使用できます。診断画面のボタンは実際のGASを呼ぶため、手動テストは模擬通信か承認済みの検証環境で行います。
 
-GitHubへのソース保存と本番への配備は別の操作です。CloudflareにはGit連携があるため、push前に自動ビルドの設定を確認してください。`npm run deploy`は本番配備を実行します。
+GitHubへのソース保存と本番への配備は別の操作です。Cloudflareの自動ビルドは2026-10-26から無効にしています（[RELEASE.md](docs/RELEASE.md)）。`npm run deploy`は本番配備を実行します。GASとフロントを続けて反映する手順もRELEASE.mdを参照してください。

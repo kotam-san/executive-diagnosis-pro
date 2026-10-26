@@ -8,7 +8,7 @@ export function harness(options = {}) {
   const state = {
     sheets: new Map(), mails: [], logs: [], locked: false, acquires: 0, releases: 0,
     failOpen: false, failWrite: false, failFlush: false, failMail: false,
-    beforeWrite: null, writes: 0, now: Date.UTC(2026,9,25,0,0,0), cache: new Map(), requests: [], usedTokens: new Set(), tokenSequence: 0, ...options,
+    beforeWrite: null, writes: 0, formats: [], lockWaits: [], now: Date.UTC(2026,9,25,0,0,0), cache: new Map(), requests: [], usedTokens: new Set(), tokenSequence: 0, ...options,
   }
   const props = { SHEET_ID: 'fake-sheet', NOTIFY_EMAIL: 'owner@example.test',
     ...(options.enableAi ? { CLAUDE_API_KEY: 'fake-ai-key', AI_SESSION_SECRET: 'fake-signing-key-with-at-least-32-characters', TURNSTILE_SECRET_KEY: 'fake-turnstile-secret-for-unit-tests' } : {}), ...options.props }
@@ -45,6 +45,7 @@ export function harness(options = {}) {
           state.writes++
         },
         setValue: value => this.getRange(row, col).setValues([[value]]),
+        setNumberFormat: format => { state.formats.push({ sheet: this.name, row, col, height, width, format }) },
       }
     }
   }
@@ -76,7 +77,7 @@ export function harness(options = {}) {
       put: (key, value, seconds) => { if (state.failCacheWrite) throw Error('cache unavailable'); state.cache.set(key, { value, expiresAt: state.now + seconds * 1000 }) },
     }) } },
     LockService: { getScriptLock: () => ({
-      tryLock: () => { if (state.locked || state.forceBusy) return false; state.locked = true; state.acquires++; return true },
+      tryLock: wait => { state.lockWaits.push(wait); if (state.locked || state.forceBusy) return false; state.locked = true; state.acquires++; return true },
       releaseLock: () => { state.locked = false; state.releases++ },
     }) },
     SpreadsheetApp: {
@@ -119,7 +120,7 @@ export function harness(options = {}) {
 
 export function payload(ctx, mode = 'quick', extra = {}) {
   return {
-    action: 'save_only', name: '架空テスト', email: 'person@example.test', mode,
+    action: 'save_only_v2', name: '架空テスト', email: 'person@example.test', mode,
     ratings: Object.fromEntries(Array.from(ctx.DIAGNOSIS_FIELDS[mode], (name, i) => [name, i % 5 + 1])),
     submissionId: 'test-submission-id-0001', ...extra,
   }

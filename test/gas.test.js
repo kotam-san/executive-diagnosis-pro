@@ -36,11 +36,10 @@ for (const mode of ['quick', 'full']) {
     const formula = '=AVERAGE(' + h.ctx.DIAGNOSIS_FIELDS[mode].map(f => `${h.ctx.columnToLetter(head.indexOf(f)+1)}3`).join(',') + ')'
     assert.equal(sheet.rows[2][head.indexOf('平均')], formula)
   })
-  test(`${mode}: legacy ID-less requests remain accepted with no deduplication`, () => {
-    const h = harness(); const p = payload(h.ctx, mode); delete p.submissionId
-    assert.equal(h.post(p).submissionId, null); assert.equal(h.post(p).status, 'success')
-    assert.equal(h.state.sheets.get(sheetName(mode)).rows.length, 3)
-    assert.equal(h.state.mails.length, 2)
+  test(`${mode}: ID-less and legacy save requests are rejected without writes or mail`, () => {
+    const h = harness(); const p = payload(h.ctx, mode); const noId = {...p}; delete noId.submissionId
+    for (const body of [noId, {...p, action: 'save_only'}, {...noId, action: 'save_only'}]) assert.equal(h.post(body).code, 'INVALID_INPUT')
+    assert.equal(h.state.writes, 0); assert.equal(h.state.mails.length, 0)
   })
   test(`${mode}: matching retries write and notify once`, () => {
     const h = harness(); const p = payload(h.ctx, mode)
@@ -160,9 +159,11 @@ test('failure reading notification config does not turn a saved row into a save 
   const result=h.post(payload(h.ctx));assert.equal(result.status,'success');assert.equal(result.notification,'failed')
 })
 
-test('v2 save requires an ID while the legacy save action remains supported', () => {
-  const h=harness();const p=payload(h.ctx,'quick',{action:'save_only_v2'})
+test('v2 save requires an ID and the legacy save action is retired', () => {
+  const h=harness();const p=payload(h.ctx,'quick')
   assert.equal(h.post(p).saved,true)
   const noId={...p};delete noId.submissionId
   assert.equal(h.post(noId).code,'INVALID_INPUT')
+  assert.equal(h.post({...p,action:'save_only',submissionId:'test-submission-id-0099'}).code,'INVALID_INPUT')
+  assert.equal(h.state.sheets.get('クイック診断').rows.length,2)
 })

@@ -15,3 +15,49 @@ test('release accepts the approved endpoint and a public-key-shaped value only',
   assert.doesNotThrow(()=>validateReleaseConfig(good))
   assert.doesNotThrow(()=>validateReleaseConfig({...good,VITE_GAS_WEBAPP_URL:GAS_WEBAPP_URL}))
 })
+
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import {spawnSync} from 'node:child_process'
+
+function fakeDist(script) {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'diagnosis-dist-'))
+  fs.mkdirSync(path.join(root,'assets'))
+  fs.copyFileSync('public/_headers',path.join(root,'_headers'))
+  fs.writeFileSync(path.join(root,'index.html'),'<script type="module" crossorigin src="/assets/index-abc123.js"></script>')
+  fs.writeFileSync(path.join(root,'assets/index-abc123.js'),script)
+  return root
+}
+const verify=(root,env={},release=true)=>spawnSync(process.execPath,['scripts/verify-build.mjs',root,...(release?['--release']:[])],{encoding:'utf8',env:{...process.env,...env}})
+
+test('release artifact check accepts a build that carries the configured public site key and approved endpoint',()=>{
+  const result=verify(fakeDist(`const k="0x4AAAAA-example-public-key",u="${GAS_WEBAPP_URL}"`),good)
+  assert.equal(result.status,0,result.stderr)
+})
+test('release artifact check rejects a build that still points at a different GAS deployment',()=>{
+  const other='https://script.google.com/macros/s/AKfycbTestDeploymentForStagingOnly000000000000/exec'
+  assert.notEqual(verify(fakeDist(`const k="0x4AAAAA-example-public-key",u="${other}"`),good).status,0)
+  assert.notEqual(verify(fakeDist(`const k="0x4AAAAA-example-public-key",u="${GAS_WEBAPP_URL}",v="${other}"`),good).status,0)
+})
+test('release artifact check rejects a build without the approved endpoint',()=>{
+  assert.notEqual(verify(fakeDist('const k="0x4AAAAA-example-public-key",u="/test-gas"'),good).status,0)
+})
+test('release artifact check rejects a build made without the public site key',()=>{
+  const result=verify(fakeDist('const k=""'),good)
+  assert.notEqual(result.status,0)
+})
+test('release artifact check rejects a missing or mock site key in the environment',()=>{
+  const result=verify(fakeDist('const k="local-browser-test-key"'),{VITE_TURNSTILE_SITE_KEY:'local-browser-test-key'})
+  assert.notEqual(result.status,0)
+})
+test('the plain artifact check still runs without release settings',()=>{
+  assert.equal(verify(fakeDist('const k=""'),{},false).status,0)
+})
+test('deploy scripts verify the release build and never rebuild after GAS is updated',()=>{
+  const {scripts}=JSON.parse(fs.readFileSync('package.json','utf8'))
+  assert.match(scripts['build:release'],/verify-release-config\.mjs.*vite build.*verify-build\.mjs.*--release/)
+  assert.match(scripts['deploy:built'],/verify-build\.mjs.*--release.*wrangler deploy/)
+  assert.ok(!/vite build/.test(scripts['deploy:built']))
+  assert.match(scripts.deploy,/build:release.*deploy:built/)
+})
