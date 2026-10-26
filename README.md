@@ -58,6 +58,8 @@ npm run verify:baseline -- --live
 | `test/` | 外部送信を伴わない保存・AI保護・障害復旧のテスト |
 | `test/fixtures/Code.v15.gs` | 旧GASとの互換性確認専用。配備には使わない |
 | `releases/` | 公開版とGitソースを対応付ける記録 |
+| `eval/` | AIフィードバックの評価ランナー（`--dry-run`は費用なし。実行するとClaude APIの費用が発生） |
+| `CLAUDE.md`・`AGENTS.md`・`.codex/` | Claude Code の作業ルールと、Codex CLI による独立レビューの設定 |
 
 ## GASの設定と秘密情報
 
@@ -65,4 +67,4 @@ GAS側のスクリプトプロパティに`CLAUDE_API_KEY`、`SHEET_ID`、`NOTIF
 
 `VITE_GAS_WEBAPP_URL`は検証用エンドポイントの差し替えに使用できます。診断画面のボタンは実際のGASを呼ぶため、手動テストは模擬通信か承認済みの検証環境で行います。
 
-GitHubへのソース保存と本番への配備は別の操作です。CloudflareにはGit連携があるため、push前に自動ビルドの設定を確認してください。`npm run deploy`は本番配備を実行します。
+GitHubへのソース保存と本番への配備は別の操作です。Cloudflareの自動ビルドは2026-10-26から無効にしています（[RELEASE.md](docs/RELEASE.md)）。`npm run deploy`は本番配備を実行します。GASとフロントを続けて反映する手順もRELEASE.mdを参照してください。
