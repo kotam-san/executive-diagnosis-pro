@@ -3,14 +3,21 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "engines": { "node": ">=24.22.1 <25" },
-  "overrides": { "miniflare": { "undici": "7.30.1" } },
+  "engines": {
+    "node": ">=24.22.1 <25"
+  },
+  "overrides": {
+    "miniflare": {
+      "undici": "7.30.1"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "predeploy": "node scripts/verify-release-config.mjs",
-    "deploy": "vite build && wrangler deploy",
+    "build:release": "node scripts/verify-release-config.mjs && vite build && node scripts/verify-build.mjs dist --release",
+    "deploy:built": "node scripts/verify-build.mjs dist --release && wrangler deploy",
+    "deploy": "npm run build:release && npm run deploy:built",
     "test": "node --test test/*.test.js",
     "check": "npm test && npm run build && npm run verify:build",
     "verify:build": "node scripts/verify-build.mjs",
@@ -20,13 +27,13 @@
     "verify:baseline": "node scripts/verify-production-baseline.mjs"
   },
   "dependencies": {
-    "chart.js": "^4.4.6",
+    "chart.js": "^4.6.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "6.1.2",
     "@tailwindcss/vite": "4.3.3",
+    "@vitejs/plugin-react": "6.1.2",
     "tailwindcss": "4.3.3",
     "vite": "8.3.5",
     "wrangler": "4.152.0"

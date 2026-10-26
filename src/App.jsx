@@ -73,7 +73,7 @@ export default function App() {
     } catch (e) {
       if (requestScope.current.current(request)) {
         setErrorMsg(e.message || '保存を確認できませんでした。同じ画面からもう一度お試しください。')
-        if (e.code === 'INVALID_INPUT') setSaveUnconfirmed(false)
+        setSaveUnconfirmed(saveController.current.unconfirmed())
       }
     } finally {
       if (requestScope.current.current(request)) setIsSaving(false)
@@ -283,6 +283,10 @@ export default function App() {
               className="w-full py-6 bg-emerald-700 text-white rounded-2xl font-black text-xl shadow-2xl hover:bg-emerald-800 disabled:bg-slate-200 disabled:shadow-none transition-all flex items-center justify-center gap-3 active:scale-95">
               {isSaving ? "保存中..." : saveUnconfirmed ? "保存を再確認する" : "📊 診断レポートを見る"}
             </button>
+            {/* Restarting while a save is unconfirmed would send the same lead again under a new ID. */}
+            {!saveUnconfirmed && !isSaving && (
+              <button type="button" onClick={resetDiagnosis} className="mt-6 text-sm text-slate-500 underline">診断を最初からやり直す</button>
+            )}
           </form>
         )}
 

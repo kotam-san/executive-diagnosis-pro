@@ -89,3 +89,54 @@ test('new frontend against v15 is rejected before any sheet write, including ret
   await assert.rejects(c.submit(input));await assert.rejects(c.submit(input))
   assert.equal(h.state.writes,0);assert.equal(h.state.mails.length,0)
 })
+
+for (const code of ['INVALID_INPUT','BUSY','SAVE_LIMITED','CONFIG_ERROR','SCHEMA_MISMATCH']) {
+  test(`${code} guarantees no write, so the ID is released and changed input may be sent`,async()=>{
+    let calls=0,ids=0;const sent=[]
+    const c=createSaveController({createId:()=>`test-submission-id-${++ids}`,send:async body=>{sent.push(body);if(++calls===1)throw Object.assign(Error(code),{code});return success(body)}})
+    await assert.rejects(c.submit(input),error=>error.code===code)
+    assert.equal(c.unconfirmed(),false)
+    await c.submit({...input,email:'corrected@example.test'})
+    assert.notEqual(sent[0].submissionId,sent[1].submissionId)
+  })
+}
+for (const code of ['SAVE_FAILED','REQUEST_TIMEOUT','NETWORK_ERROR','ID_CONFLICT',undefined]) {
+  test(`ambiguous failure ${code} keeps the save unconfirmed with the same ID`,async()=>{
+    const c=createSaveController({createId:()=> 'test-submission-id-0001',send:async()=>{throw Object.assign(Error('unknown'),{code})}})
+    await assert.rejects(c.submit(input))
+    assert.equal(c.unconfirmed(),true)
+  })
+}
+test('the save limit has its own retry message', async () => {
+  await assert.rejects(callGAS('https://invalid.test',input,{fetchImpl:async()=>({ok:true,json:async()=>({status:'error',code:'SAVE_LIMITED'})})}),
+    error=>error.code==='SAVE_LIMITED'&&/時間を置いて/.test(error.message))
+})
+test('a reset after an ambiguous save failure would duplicate the lead, so the screen must not offer it', async () => {
+  // Documents why App.jsx hides the restart button while a save is unconfirmed.
+  const h=harness();const p=payload(h.ctx);let ids=0
+  const options={createId:()=>`test-submission-id-${String(++ids).padStart(4,'0')}`,send:async body=>{const result=h.post(body);if(ids===1)throw new TypeError('response lost');return result}}
+  const first=createSaveController(options)
+  await assert.rejects(first.submit(p));assert.equal(first.unconfirmed(),true)
+  await createSaveController(options).submit(p)
+  assert.equal(h.state.sheets.get('クイック診断').rows.length,3)
+})
+for (const code of ['BUSY','CONFIG_ERROR','SCHEMA_MISMATCH','INVALID_INPUT','SAVE_LIMITED']) {
+  test(`${code} after an ambiguous attempt keeps the ID, because the earlier attempt may have saved`,async()=>{
+    let calls=0
+    const c=createSaveController({createId:()=> 'test-submission-id-0001',send:async()=>{throw Object.assign(Error('x'),{code:++calls===1?'NETWORK_ERROR':code})}})
+    await assert.rejects(c.submit(input));await assert.rejects(c.submit(input),error=>error.code===code)
+    assert.equal(c.unconfirmed(),true)
+  })
+}
+test('end-to-end: saved response lost, then BUSY on retry, never creates a second row',async()=>{
+  const h=harness();const p=payload(h.ctx);let attempt=0,ids=0
+  const c=createSaveController({createId:()=>`test-submission-id-${String(++ids).padStart(4,'0')}`,send:async body=>{
+    attempt++
+    if(attempt===1){h.post(body);throw new TypeError('response lost')}
+    if(attempt===2)throw Object.assign(Error('busy'),{code:'BUSY'})
+    return h.post(body)
+  }})
+  await assert.rejects(c.submit(p));await assert.rejects(c.submit(p))
+  assert.equal((await c.submit(p)).duplicate,true)
+  assert.equal(h.state.sheets.get('クイック診断').rows.length,2);assert.equal(h.state.mails.length,1)
+})
