@@ -25,8 +25,8 @@ const model = args.includes('--model') ? args[args.indexOf('--model') + 1] : nul
 
 // 本番に出ている版と、作業ツリーの次回反映用の版を比べる
 const versions = [
-  { id: 'production', label: '本番（production-2026-10-26）',
-    source: execFileSync('git', ['show', 'production-2026-10-26:gas/Code.gs'], { cwd: root, encoding: 'utf8' }) },
+  { id: 'production', label: '本番（production-2026-10-26-v18）',
+    source: execFileSync('git', ['show', 'production-2026-10-26-v18:gas/Code.gs'], { cwd: root, encoding: 'utf8' }) },
   { id: 'working', label: '作業ツリー（gas/Code.gs）',
     source: fs.readFileSync(path.join(root, 'gas/Code.gs'), 'utf8') },
 ]

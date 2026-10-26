@@ -1,4 +1,4 @@
-// Verify the recovered 2026-10-19 production baseline. This never calls GAS.
+// Verify the current production baseline (2026-10-26, GAS 18). This never calls GAS.
 // Without --live, all checks are local. --live performs GETs for public assets only.
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
@@ -7,7 +7,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
-const manifest = JSON.parse(await fs.readFile(path.join(root, 'releases/production-2026-10-19.json'), 'utf8'))
+const manifest = JSON.parse(await fs.readFile(path.join(root, 'releases/production-2026-10-26-v18.json'), 'utf8'))
 const args = process.argv.slice(2)
 assert.ok(args.every(arg => arg === '--live'), 'Supported argument: --live')
 const sha256 = data => createHash('sha256').update(data).digest('hex')

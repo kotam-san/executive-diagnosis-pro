@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "production_deployed_on": "2026-10-26",
+  "deployed_at": "2026-10-26T11:19+09:00",
+  "source_ref": "refs/tags/production-2026-10-26-v18",
+  "source_commit": "74bed2ec526843a38cd3a003a27096af44149cf2",
+  "frontend_origin": "https://executive-diagnosis-pro.kota-m.workers.dev",
+  "worker_version": "da4a0827-b33a-4eed-946b-2e2bff6d3335",
+  "worker_rollback": "e995022a-9263-4745-a203-04194a20e5b4",
+  "gas_project": "リード集計Pro用",
+  "gas_deployment_id_prefix": "AKfycbxer99EX4",
+  "gas_version": 18,
+  "gas_rollback_version": 17,
+  "gas_version_description": "2026-10-26 工程2〜4（人間確認・AI利用上限・保存上限・MailApp）main 74bed2e",
+  "turnstile_site_key": "0x4AAAAAAFmArDm8pJRBXbbp",
+  "gas_script_properties_added": [
+    "TURNSTILE_SECRET_KEY",
+    "AI_SESSION_SECRET"
+  ],
+  "ai_limits": "defaults (hourly 30, daily 100, per action 2, concurrent 3; saves 120/h; notifications 20/h)",
+  "reproduction_environment": {
+    "node": "24.22.1",
+    "build_command": "VITE_TURNSTILE_SITE_KEY=<site key> npm run build:release"
+  },
+  "assets": [
+    {
+      "file": "index.html",
+      "url_path": "/",
+      "bytes": 735,
+      "sha256": "2cd8f91360136eacf95dc3be8c299aafac97f5f615051cfff50f61d4baa513d4"
+    },
+    {
+      "file": "assets/index-CWhr9yxC.js",
+      "url_path": "/assets/index-CWhr9yxC.js",
+      "bytes": 376246,
+      "sha256": "53feb4040a3edeefa8569922298a56036ef9df08cb793ebe7864ccda2a1912eb"
+    },
+    {
+      "file": "assets/index-DFf2Veru.css",
+      "url_path": "/assets/index-DFf2Veru.css",
+      "bytes": 22942,
+      "sha256": "d50e3fb9bdcee4df2eeb5d5e99eeaac3defb20fc0cf323b0d123a847eaa3917e"
+    }
+  ],
+  "source_sha256": {
+    "index.html": "32cbd2843cbecba91a731036a29774f77a58c3c52fc7585c16318b41e6dda100",
+    "package.json": "bd6167eb39bd61ecb9bdd6725b83b5e9b01426337a262d668ebe3046bcf5e6de",
+    "package-lock.json": "c3c04d78631245d2c06c23258520472ae887f252b136edcd700cd1e9fc4a1b90",
+    "vite.config.js": "a21a6d2bfd533c66cb0edcc6b10ec371b200838ce90769b03eb97b2d1213383d",
+    "wrangler.toml": "a657971435e1e9172d1e6929bf332919c1c1e2c8d5ff8525f32d530ca8dbf18c",
+    "public/_headers": "77d5696600204665bcf3797930be52c1b9758df78e9ee6955d5e0b68bcf7770f",
+    "src/App.jsx": "8de7a3cdab4afbe0766bbcbe3cbf38dedc3f8a332cc1988d197ee2094dced7d5",
+    "src/data.js": "72b72a3db3db110dbfef8ea84361a8644edb1f83a4fcfb4504a9e8128f50ff2e",
+    "src/diagnosis.js": "08c888de81131c4653664319cb8710237befe2783d84a2cd922518319c65ed44",
+    "src/transport.js": "9e23c72830f9f1958860af6f175f353b7b1b7ecc9e5fdcd09b6488e9186c418c",
+    "src/turnstile.js": "0f56dd96577574b4ff8357c91e6c0fae45d495f93694b1aa9b56a7b2e378a668",
+    "src/saveSubmission.js": "3ded3c5b18847968111ba97244ac398ac06aff86f54728b4cbbf897c93e9473d",
+    "src/HumanVerification.jsx": "5866248f22ef413017989516a2b5f3d4a92ad26595f16ea3c2e70bce87006278",
+    "gas/Code.gs": "bd24cbb9a4b3558e8eb73df7666922ee5b79612758ef321e8f533ce2ab828692",
+    "gas/appsscript.json": "028cdf3c672298507091f048258d5cf45417a48a0e1b4dc3a1d24b35467e246b"
+  },
+  "verified": [
+    "Before the change, the editor code matched GAS version 17 (gas/Code.gs 20d9ccf6...).",
+    "After replacing Code.gs and appsscript.json from main 74bed2e (fetched and checked by SHA-256), both matched after save and reload.",
+    "The existing web app deployment (same ID and URL, access: everyone, runs as owner) was edited to version 18; no authorization prompt appeared.",
+    "The release build passed config, header and asset checks; npm test passed (249 tests); GitHub CI passed on the merged branch.",
+    "npm run deploy:built deployed Worker da4a0827; npm run healthcheck -- --require-security-headers passed (GET only).",
+    "The live page loads assets/index-CWhr9yxC.js.",
+    "2026-10-26 11:22-11:24: the owner ran a quick diagnosis on the live screen; human check, analysis and plan displayed and the notification email arrived.",
+    "GAS executions for that test all completed; inspectOperations showed AI configured, 2 AI attempts today, 0 pending, 2 saves and 2 notifications in the 11:00 hour, none suppressed.",
+    "The sheet クイック診断 has the two saves of that hour (11:22:49 and 11:23:33) with submission IDs."
+  ],
+  "unverified": [
+    "Browser coverage beyond the owner’s check (other phones and browsers).",
+    "Display inside the homepage embed was not separately recorded.",
+    "Response time was not measured."
+  ],
+  "follow_ups": [
+    "Decide consent recording, data retention and deletion handling (docs/OPERATIONS.md).",
+    "Name the owner for GitHub CI failure notifications.",
+    "Delete test rows from the sheet (owner)."
+  ],
+  "scope": "Stage 2-4 release: human verification before AI, signed AI sessions, AI and save limits, MailApp notifications, recovery and hardening, on top of GAS 17."
+}
