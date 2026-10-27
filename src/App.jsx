@@ -141,6 +141,19 @@ export default function App() {
     }, 200)
   }
 
+  // Earlier answers stay in ratings, so stepping back shows the previous choice highlighted.
+  const goToPreviousQuestion = () => {
+    if (appPhase !== 'questions' || answering.current || currentStep === 0) return
+    setCurrentStep(currentStep - 1)
+    setErrorMsg('')
+  }
+
+  const reviewAnswers = () => {
+    setAppPhase('questions')
+    setCurrentStep(activeCategories.length - 1)
+    setErrorMsg('')
+  }
+
   useEffect(() => () => {
     requestScope.current.reset()
     clearTimeout(answerTimer.current)
@@ -220,7 +233,13 @@ export default function App() {
               <span>High: 理想的な状態</span>
             </div>
             {errorMsg && <p role="alert" className="text-red-700">{errorMsg}</p>}
-            <button onClick={resetDiagnosis} className="mt-6 text-sm text-slate-500 underline">診断を最初からやり直す</button>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+              {currentStep > 0 && (
+                <button type="button" onClick={goToPreviousQuestion} disabled={isTransitioning}
+                  className="text-sm text-slate-500 underline disabled:opacity-50">← 前の質問に戻る</button>
+              )}
+              <button onClick={resetDiagnosis} className="ml-auto text-sm text-slate-500 underline">診断を最初からやり直す</button>
+            </div>
           </div>
         )}
 
@@ -285,7 +304,10 @@ export default function App() {
             </button>
             {/* Restarting while a save is unconfirmed would send the same lead again under a new ID. */}
             {!saveUnconfirmed && !isSaving && (
-              <button type="button" onClick={resetDiagnosis} className="mt-6 text-sm text-slate-500 underline">診断を最初からやり直す</button>
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                <button type="button" onClick={reviewAnswers} className="text-sm text-slate-500 underline">← 回答を見直す</button>
+                <button type="button" onClick={resetDiagnosis} className="text-sm text-slate-500 underline">診断を最初からやり直す</button>
+              </div>
             )}
           </form>
         )}
