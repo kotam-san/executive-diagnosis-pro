@@ -34,14 +34,24 @@ mainの`74bed2e`（PR #1・#2）を公開しました。GASを先に、画面を
 - 画面：`VITE_TURNSTILE_SITE_KEY`を付けて`npm run build:release`と`npm run deploy:built`を実行した（`deploy:built`の検査もこの変数を読むため、両方に付ける）。
 - 確認：`npm run healthcheck -- --require-security-headers`が成功。所有者が本番画面でクイック診断を行い、人間確認・分析・プラン・通知メールが動いた。GASの実行はすべて完了し、`inspectOperations`とシートで保存2件・通知2件・AI生成2回を確認した。
 
+## 2026-10-27 質問画面の戻るボタン（画面のみ）
+
+mainの`c2328f4`（PR #10）を画面だけ公開しました。GASはバージョン18のまま変更していません。
+
+- 内容：質問画面の2問目以降に「← 前の質問に戻る」、連絡先入力画面に「← 回答を見直す」（保存中・保存未確認のときは非表示）。
+- ソース：`production-2026-10-27`タグ
+- 記録：[releases/production-2026-10-27.json](../releases/production-2026-10-27.json)。`scripts/verify-production-baseline.mjs`の照合先もこの記録に切り替えた。
+- 画面：マージ後に`npx wrangler versions list`で自動ビルドの新バージョンがないことを確かめ、`VITE_TURNSTILE_SITE_KEY`を付けて`npm run build:release`と`npm run deploy:built`を実行した。
+- 確認：`npm run healthcheck -- --require-security-headers`と`npm run verify:baseline -- --live`が成功。本番画面で戻るボタンの表示と前の回答の強調を確かめた（保存・通知・AIは送っていない）。新画面での本番保存は未実施。
+
 ## 現在の公開版
 
 | 対象 | 現在の公開版 | 更新前の復元先 |
 | --- | --- | --- |
-| Cloudflare Worker | `da4a0827-b33a-4eed-946b-2e2bff6d3335`（2026-10-26） | `e995022a-9263-4745-a203-04194a20e5b4` |
+| Cloudflare Worker | `8e25111f-cc93-4959-8f66-67ac1ee5fe54`（2026-10-27） | `da4a0827-b33a-4eed-946b-2e2bff6d3335` |
 | GAS | バージョン18（2026-10-26） | バージョン17 |
 
-工程2〜4のGAS（バージョン18）は、旧画面のAI呼び出しを受け付けません。画面を`e995022a`へ戻すときは、GASもバージョン17へ戻します（保存はどちらの組み合わせでも動く）。
+`da4a0827`へ戻すときは画面だけを戻せばよく、GASはバージョン18のままで動きます。工程2〜4のGAS（バージョン18）は、それより前の画面のAI呼び出しを受け付けません。画面を`e995022a`へ戻すときは、GASもバージョン17へ戻します（保存はどちらの組み合わせでも動く）。
 
 ## 現在のGit連携
 

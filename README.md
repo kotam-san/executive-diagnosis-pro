@@ -16,8 +16,8 @@
 
 - 本番画面：<https://executive-diagnosis-pro.kota-m.workers.dev/>
 - ホームページの埋め込み：<https://www.1planet.jp/keieishasindanpro>
-- 公開版を識別するGitタグ：`production-2026-10-26-v18`（工程2〜4。GASバージョン18と画面）
-- アセットとソースの指紋：[releases/production-2026-10-26-v18.json](releases/production-2026-10-26-v18.json)（過去の記録も`releases/`にある）
+- 公開版を識別するGitタグ：`production-2026-10-27`（質問画面の戻るボタン。GASはバージョン18のまま）
+- アセットとソースの指紋：[releases/production-2026-10-27.json](releases/production-2026-10-27.json)（過去の記録も`releases/`にある）
 - 公開・復元と今後の記録方法：[docs/RELEASE.md](docs/RELEASE.md)
 
 この取り込みは現在の公開版を保存するものです。機能・安全性の追加改善は別の変更で扱います。依存関係も公開版のlockfileを保持しています。
