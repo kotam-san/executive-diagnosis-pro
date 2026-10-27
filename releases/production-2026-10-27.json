@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "production_deployed_on": "2026-10-27",
+  "deployed_at": "2026-10-27T12:45+09:00",
+  "source_ref": "refs/tags/production-2026-10-27",
+  "source_commit": "c2328f41a6968d9adc7a8682d94be0df6dad856f",
+  "frontend_origin": "https://executive-diagnosis-pro.kota-m.workers.dev",
+  "worker_version": "8e25111f-cc93-4959-8f66-67ac1ee5fe54",
+  "worker_rollback": "da4a0827-b33a-4eed-946b-2e2bff6d3335",
+  "gas_project": "リード集計Pro用",
+  "gas_deployment_id_prefix": "AKfycbxer99EX4",
+  "gas_version": 18,
+  "gas_rollback_version": 17,
+  "gas_version_description": "Unchanged from the 2026-10-26 release (GAS was not touched)",
+  "turnstile_site_key": "0x4AAAAAAFmArDm8pJRBXbbp",
+  "reproduction_environment": {
+    "node": "24.22.1",
+    "build_command": "VITE_TURNSTILE_SITE_KEY=<site key> npm run build:release"
+  },
+  "assets": [
+    {
+      "file": "index.html",
+      "url_path": "/",
+      "bytes": 735,
+      "sha256": "a08100ca159d3448be5026c15782d24cb055b0db1841b16eec45bba1f2f6b312"
+    },
+    {
+      "file": "assets/index-DlJwCcQ1.js",
+      "url_path": "/assets/index-DlJwCcQ1.js",
+      "bytes": 376837,
+      "sha256": "69787d427c3d022f097510361d87f070d3cdb7c54bc4089a238adf83fe2c08cb"
+    },
+    {
+      "file": "assets/index-CFiXiNkp.css",
+      "url_path": "/assets/index-CFiXiNkp.css",
+      "bytes": 22968,
+      "sha256": "2cfe2c7f50c8f2fe7ac5e15d0cc048e04e27937210c9bee20816dc9ee136d30f"
+    }
+  ],
+  "source_sha256": {
+    "index.html": "32cbd2843cbecba91a731036a29774f77a58c3c52fc7585c16318b41e6dda100",
+    "package.json": "bd6167eb39bd61ecb9bdd6725b83b5e9b01426337a262d668ebe3046bcf5e6de",
+    "package-lock.json": "c3c04d78631245d2c06c23258520472ae887f252b136edcd700cd1e9fc4a1b90",
+    "vite.config.js": "a21a6d2bfd533c66cb0edcc6b10ec371b200838ce90769b03eb97b2d1213383d",
+    "wrangler.toml": "a657971435e1e9172d1e6929bf332919c1c1e2c8d5ff8525f32d530ca8dbf18c",
+    "public/_headers": "77d5696600204665bcf3797930be52c1b9758df78e9ee6955d5e0b68bcf7770f",
+    "src/App.jsx": "ba279dbbd6bc526396bacfb45a048af5ddca21799ed75239304e7d393a040f00",
+    "src/data.js": "72b72a3db3db110dbfef8ea84361a8644edb1f83a4fcfb4504a9e8128f50ff2e",
+    "src/diagnosis.js": "08c888de81131c4653664319cb8710237befe2783d84a2cd922518319c65ed44",
+    "src/transport.js": "9e23c72830f9f1958860af6f175f353b7b1b7ecc9e5fdcd09b6488e9186c418c",
+    "src/turnstile.js": "0f56dd96577574b4ff8357c91e6c0fae45d495f93694b1aa9b56a7b2e378a668",
+    "src/saveSubmission.js": "3ded3c5b18847968111ba97244ac398ac06aff86f54728b4cbbf897c93e9473d",
+    "src/HumanVerification.jsx": "5866248f22ef413017989516a2b5f3d4a92ad26595f16ea3c2e70bce87006278",
+    "gas/Code.gs": "bd24cbb9a4b3558e8eb73df7666922ee5b79612758ef321e8f533ce2ab828692",
+    "gas/appsscript.json": "028cdf3c672298507091f048258d5cf45417a48a0e1b4dc3a1d24b35467e246b"
+  },
+  "verified": [
+    "PR #10 merged into main as c2328f4; after the merge, wrangler versions list showed no new version from Workers Builds.",
+    "npm ci and npm test passed (249 tests); the release build passed config, header and asset checks.",
+    "npm run deploy:built deployed Worker 8e25111f; npm run healthcheck -- --require-security-headers passed (GET only).",
+    "The live page loads assets/index-DlJwCcQ1.js. On the live screen, question 1 has no back button, question 2 shows it, and going back highlights the earlier answer. No save, notification or AI request was sent.",
+    "Before merge, the mock server (test/browser-server.mjs) covered both modes, going back within 200ms, review after a definite save failure (new submission ID) and after an ambiguous one (review hidden, same ID, no duplicate row)."
+  ],
+  "unverified": [
+    "A full save on production with the new screen (not run, to avoid writing a test row).",
+    "Browser coverage beyond the in-app browser (other phones and browsers).",
+    "Display inside the homepage embed."
+  ],
+  "scope": "Frontend only: a previous-question button from question 2 and a review-answers link on the lead form. GAS unchanged."
+}
