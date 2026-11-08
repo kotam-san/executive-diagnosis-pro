@@ -32,10 +32,10 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "4.3.3",
-    "@vitejs/plugin-react": "6.1.2",
-    "tailwindcss": "4.3.3",
-    "vite": "8.3.5",
-    "wrangler": "4.152.0"
+    "@tailwindcss/vite": "4.3.4",
+    "@vitejs/plugin-react": "6.2.1",
+    "tailwindcss": "4.3.4",
+    "vite": "8.3.6",
+    "wrangler": "4.158.0"
   }
 }
