@@ -35,6 +35,9 @@ export default function App() {
   const answering = useRef(false)
   const ratingsSnapshot = useRef({})
   const requestScope = useRef(null)
+  const nameInput = useRef(null)
+  const emailInput = useRef(null)
+  const consentInput = useRef(null)
   if (!requestScope.current) requestScope.current = createRequestScope()
 
   const activeCategories = useMemo(() => diagMode === 'quick'
@@ -49,10 +52,15 @@ export default function App() {
 
   const handleSubmitInfo = async event => {
     event.preventDefault()
-    if (!agreedToPolicy || isSaving) return
+    if (isSaving) return
     const errors = leadErrors(userInfo)
+    if (!agreedToPolicy) errors.consent = 'プライバシーポリシーへの同意にチェックを入れてください。'
     setInputErrors(errors)
-    if (Object.keys(errors).length) return
+    const firstError = [['name', nameInput], ['email', emailInput], ['consent', consentInput]].find(([key]) => errors[key])
+    if (firstError) {
+      firstError[1].current?.focus()
+      return
+    }
     if (!event.currentTarget.reportValidity()) return
     if (!completeRatings(diagMode, ratingsSnapshot.current)) {
       setErrorMsg('回答を確認できませんでした。診断を最初からやり直してください。')
@@ -201,6 +209,7 @@ export default function App() {
                 <p className="text-sm text-slate-500 leading-relaxed">深層心理までAIが分析。目安3分。</p>
               </button>
             </div>
+            <p className="text-sm text-slate-500 mt-6">結果の表示には、お名前とメールアドレスの入力が必要です。</p>
           </div>
         )}
 
@@ -253,49 +262,54 @@ export default function App() {
         </div>}
 
         {appPhase === 'lead_capture' && (
-          <form noValidate onSubmit={handleSubmitInfo} className="bg-white rounded-[2rem] p-10 md:p-14 shadow-2xl border border-slate-100 text-center animate-in">
-            <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mx-auto mb-8">
-              <span className="text-4xl">✨</span>
+          <form noValidate onSubmit={handleSubmitInfo} className="bg-white rounded-[2rem] p-6 md:p-14 shadow-2xl border border-slate-100 text-center animate-in">
+            <h2 className="text-2xl md:text-3xl font-black mb-4 tracking-tight">診断が完了しました</h2>
+            <div className="text-slate-600 mb-6 md:mb-12 text-base md:text-lg font-medium leading-relaxed">
+              <p>結果の表示には、お名前とメールアドレスが必要です。入力すると、この画面で次の3つをご覧いただけます。</p>
+              <ul className="mt-2 inline-block text-left">
+                <li>・満足度のバランスが分かるグラフ</li>
+                <li>・AIによる個別フィードバック</li>
+                <li>・具体的な行動プラン</li>
+              </ul>
             </div>
-            <h2 className="text-3xl font-black mb-4 tracking-tight">診断が完了しました</h2>
-            <p className="text-slate-600 mb-12 text-lg font-medium leading-relaxed">
-              AIコーチがあなたの「経営課題波及分析」を行います。<br/>
-              フィードバックを生成するために、詳細を入力してください。
-            </p>
             <div className="max-w-md mx-auto space-y-6 mb-8 text-left">
               <div>
-                <label htmlFor="lead-name" className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">お名前 *</label>
-                <input id="lead-name" name="name" type="text" required maxLength={200} autoComplete="name" value={userInfo.name}
+                <label htmlFor="lead-name" className="block text-sm font-bold text-slate-700 mb-2">お名前（必須）</label>
+                <input ref={nameInput} id="lead-name" name="name" type="text" required maxLength={200} autoComplete="name" value={userInfo.name}
                   aria-invalid={Boolean(inputErrors.name)} aria-describedby={inputErrors.name ? 'name-error' : undefined}
                   onChange={e => { setUserInfo({...userInfo, name: e.target.value}); setInputErrors(errors => ({...errors, name: ''})) }}
                   disabled={isSaving || saveUnconfirmed}
                   className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-hidden transition-all font-medium text-lg"
-                  placeholder="姓名" />
+                  placeholder="山田 太郎" />
                 {inputErrors.name && <p id="name-error" role="alert" className="mt-2 text-sm text-red-700">{inputErrors.name}</p>}
               </div>
               <div>
-                <label htmlFor="lead-email" className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">メールアドレス *</label>
-                <input id="lead-email" name="email" type="email" required maxLength={254} autoComplete="email" value={userInfo.email}
+                <label htmlFor="lead-email" className="block text-sm font-bold text-slate-700 mb-2">メールアドレス（必須）</label>
+                <input ref={emailInput} id="lead-email" name="email" type="email" required maxLength={254} autoComplete="email" value={userInfo.email}
                   aria-invalid={Boolean(inputErrors.email)} aria-describedby={inputErrors.email ? 'email-error' : undefined}
                   onChange={e => { setUserInfo({...userInfo, email: e.target.value}); setInputErrors(errors => ({...errors, email: ''})) }}
                   disabled={isSaving || saveUnconfirmed}
                   className="w-full p-4 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 outline-hidden transition-all font-medium text-lg"
-                  placeholder="ex@company.com" />
+                  placeholder="taro@example.co.jp" />
                 {inputErrors.email && <p id="email-error" role="alert" className="mt-2 text-sm text-red-700">{inputErrors.email}</p>}
               </div>
 
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <input type="checkbox"
-                  required disabled={isSaving || saveUnconfirmed}
-                  checked={agreedToPolicy}
-                  onChange={e => setAgreedToPolicy(e.target.checked)}
-                  className="mt-1 w-5 h-5 accent-emerald-600 cursor-pointer shrink-0" />
-                <span className="text-sm text-slate-600 leading-relaxed">
-                  <a href="https://www.1planet.jp/privacy" target="_blank" rel="noopener noreferrer"
-                    className="text-emerald-600 underline hover:text-emerald-800 font-bold">プライバシーポリシー</a>
-                  に同意して、診断結果の表示および ONE PLANET からの情報提供を受けることに同意します。
-                </span>
-              </label>
+              <div>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input ref={consentInput} type="checkbox"
+                    required disabled={isSaving || saveUnconfirmed}
+                    checked={agreedToPolicy}
+                    aria-invalid={Boolean(inputErrors.consent)} aria-describedby={inputErrors.consent ? 'consent-error' : undefined}
+                    onChange={e => { setAgreedToPolicy(e.target.checked); if (e.target.checked) setInputErrors(errors => ({...errors, consent: ''})) }}
+                    className="mt-1 w-5 h-5 accent-emerald-600 cursor-pointer shrink-0" />
+                  <span className="text-sm text-slate-600 leading-relaxed">
+                    <a href="https://www.1planet.jp/privacy" target="_blank" rel="noopener noreferrer"
+                      className="text-emerald-600 underline hover:text-emerald-800 font-bold">プライバシーポリシー</a>
+                    に同意して、診断結果の表示および ONE PLANET からの情報提供を受けることに同意します。
+                  </span>
+                </label>
+                {inputErrors.consent && <p id="consent-error" role="alert" className="mt-2 text-sm text-red-700">{inputErrors.consent}</p>}
+              </div>
             </div>
 
             {errorMsg && (
@@ -303,8 +317,8 @@ export default function App() {
             )}
             {saveUnconfirmed && !isSaving && <p className="text-sm text-slate-600 mb-4">保存結果が未確認のため、入力内容を保持しています。同じボタンでもう一度確認できます。</p>}
             <button type="submit"
-              disabled={!userInfo.email.trim() || !userInfo.name.trim() || !agreedToPolicy || isSaving}
-              className="w-full py-6 bg-emerald-700 text-white rounded-2xl font-black text-xl shadow-2xl hover:bg-emerald-800 disabled:bg-slate-200 disabled:shadow-none transition-all flex items-center justify-center gap-3 active:scale-95">
+              disabled={isSaving}
+              className="w-full py-4 md:py-6 bg-emerald-700 text-white rounded-2xl font-black text-lg md:text-xl shadow-2xl hover:bg-emerald-800 disabled:bg-slate-200 disabled:shadow-none transition-all flex items-center justify-center gap-3 active:scale-95">
               {isSaving ? "保存中..." : saveUnconfirmed ? "保存を再確認する" : "📊 診断レポートを見る"}
             </button>
             {/* Restarting while a save is unconfirmed would send the same lead again under a new ID. */}
