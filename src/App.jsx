@@ -338,7 +338,7 @@ export default function App() {
             <ResultSummary name={userInfo.name} categories={activeCategories} ratings={ratings} />
 
             <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-slate-100">
-              <h3 className="font-black text-slate-400 tracking-[0.2em] uppercase text-xs mb-8">Satisfaction Balance Radar</h3>
+              <h3 className="text-sm font-bold text-slate-500 mb-6 md:mb-8">満足度のバランス</h3>
               <ScoreChart categories={activeCategories} ratings={ratings} />
             </div>
 
