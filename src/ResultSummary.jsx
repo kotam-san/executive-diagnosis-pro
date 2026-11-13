@@ -17,7 +17,7 @@ function ScoreList({ title, items }) {
 export default function ResultSummary({ name, categories, ratings }) {
   const { high, low, flat } = summarize(categories, ratings)
   return <section className="bg-white rounded-[2.5rem] p-6 md:p-12 shadow-2xl border border-slate-100">
-    <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-6">{name.trim()}さんの診断結果</h3>
+    <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-6 break-words">{name.trim()}さんの診断結果</h3>
     {flat
       ? <p className="text-slate-700 leading-relaxed">すべての項目が同じ点数でした。下のグラフと、AIのフィードバックをご覧ください。</p>
       : <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
