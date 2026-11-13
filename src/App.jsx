@@ -154,6 +154,9 @@ export default function App() {
     setErrorMsg('')
   }
 
+  // Each new screen starts at the top; stepping between questions keeps the position.
+  useEffect(() => { window.scrollTo(0, 0) }, [appPhase])
+
   useEffect(() => () => {
     requestScope.current.reset()
     clearTimeout(answerTimer.current)
