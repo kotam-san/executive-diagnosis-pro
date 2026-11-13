@@ -5,6 +5,7 @@ import { completeRatings, createRequestScope, requestAI } from './diagnosis'
 import HumanVerification from './HumanVerification'
 import { leadErrors } from './leadValidation'
 import ScoreChart from './ScoreChart'
+import ResultSummary from './ResultSummary'
 import RenderBoundary from './RenderBoundary'
 
 const TURNSTILE_SITE_KEY = import.meta.env?.VITE_TURNSTILE_SITE_KEY || ''
@@ -333,6 +334,8 @@ export default function App() {
 
         {appPhase === 'results' && (
           <div className="space-y-8 animate-in pb-24">
+
+            <ResultSummary name={userInfo.name} categories={activeCategories} ratings={ratings} />
 
             <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-slate-100">
               <h3 className="font-black text-slate-400 tracking-[0.2em] uppercase text-xs mb-8">Satisfaction Balance Radar</h3>
