@@ -44,14 +44,24 @@ mainの`c2328f4`（PR #10）を画面だけ公開しました。GASはバージ�
 - 画面：マージ後に`npx wrangler versions list`で自動ビルドの新バージョンがないことを確かめ、`VITE_TURNSTILE_SITE_KEY`を付けて`npm run build:release`と`npm run deploy:built`を実行した。
 - 確認：`npm run healthcheck -- --require-security-headers`と`npm run verify:baseline -- --live`が成功。本番画面で戻るボタンの表示と前の回答の強調を確かめた（保存・通知・AIは送っていない）。新画面での本番保存は未実施。
 
+## 2026-11-13 デザイン直し 第1弾（画面のみ）
+
+mainの`a020566`（PR #14）を画面だけ公開しました。GASはバージョン18のまま変更していません。
+
+- 内容：表示の速さ、画面ごとに先頭へ戻す動き、スマホの余白と見出し、回答ボタンの見やすさ、連絡先入力の赤字の案内、結果の先頭の要約、スマホの横棒グラフ、1行に収まる面談ボタン。
+- ソース：`production-2026-11-13`タグ
+- 記録：[releases/production-2026-11-13.json](../releases/production-2026-11-13.json)。`scripts/verify-production-baseline.mjs`の照合先もこの記録に切り替えた。
+- 画面：マージの前後に`npx wrangler versions list`で自動ビルドの新バージョンがないことを確かめ、`VITE_TURNSTILE_SITE_KEY`を付けて`npm run build:release`と`npm run deploy:built`を実行した。
+- 確認：`npm run healthcheck -- --require-security-headers`と`npm run verify:baseline -- --live`が成功。本番画面の幅375で、最初の画面の案内と質問画面の説明を確かめた（保存・通知・AIは送っていない）。新画面での本番保存、スマホ実機、ホームページの埋め込みは未確認。
+
 ## 現在の公開版
 
 | 対象 | 現在の公開版 | 更新前の復元先 |
 | --- | --- | --- |
-| Cloudflare Worker | `8e25111f-cc93-4959-8f66-67ac1ee5fe54`（2026-10-27） | `da4a0827-b33a-4eed-946b-2e2bff6d3335` |
+| Cloudflare Worker | `6cdcc6b8-3ed4-4687-b0cf-779f4b5abe1c`（2026-11-13） | `8e25111f-cc93-4959-8f66-67ac1ee5fe54` |
 | GAS | バージョン18（2026-10-26） | バージョン17 |
 
-`da4a0827`へ戻すときは画面だけを戻せばよく、GASはバージョン18のままで動きます。工程2〜4のGAS（バージョン18）は、それより前の画面のAI呼び出しを受け付けません。画面を`e995022a`へ戻すときは、GASもバージョン17へ戻します（保存はどちらの組み合わせでも動く）。
+`8e25111f`へ戻すときは画面だけを戻せばよく、GASはバージョン18のままで動きます。工程2〜4のGAS（バージョン18）は、それより前の画面のAI呼び出しを受け付けません。画面を`e995022a`へ戻すときは、GASもバージョン17へ戻します（保存はどちらの組み合わせでも動く）。
 
 ## 現在のGit連携
 

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "production_deployed_on": "2026-11-13",
+  "deployed_at": "2026-11-13T15:54+09:00",
+  "source_ref": "refs/tags/production-2026-11-13",
+  "source_commit": "a020566f60e8fe6c35f1cd71f6d40af056fb0ceb",
+  "frontend_origin": "https://executive-diagnosis-pro.kota-m.workers.dev",
+  "worker_version": "6cdcc6b8-3ed4-4687-b0cf-779f4b5abe1c",
+  "worker_rollback": "8e25111f-cc93-4959-8f66-67ac1ee5fe54",
+  "gas_project": "リード集計Pro用",
+  "gas_deployment_id_prefix": "AKfycbxer99EX4",
+  "gas_version": 18,
+  "gas_rollback_version": 17,
+  "gas_version_description": "Unchanged from the 2026-10-26 release (GAS was not touched)",
+  "turnstile_site_key": "0x4AAAAAAFmArDm8pJRBXbbp",
+  "reproduction_environment": {
+    "node": "24.22.1",
+    "build_command": "VITE_TURNSTILE_SITE_KEY=<site key> npm run build:release"
+  },
+  "assets": [
+    {
+      "file": "index.html",
+      "url_path": "/",
+      "bytes": 735,
+      "sha256": "066d9414a1e95c8defb50777298440fc443e12ad09ec151afc258704036f4c71"
+    },
+    {
+      "file": "assets/index-63wb7iKQ.js",
+      "url_path": "/assets/index-63wb7iKQ.js",
+      "bytes": 381136,
+      "sha256": "e2cd2d5ddc055562c87d33f614cb9bcd8c5db657743a2d6b911c6b61d4074254"
+    },
+    {
+      "file": "assets/index-Dwtw3z_6.css",
+      "url_path": "/assets/index-Dwtw3z_6.css",
+      "bytes": 24606,
+      "sha256": "62036fa36ab1e80a6fe4e55b10e2d19eee7f5d041c65dc6163f20bf35525c6ac"
+    }
+  ],
+  "source_sha256": {
+    "index.html": "32cbd2843cbecba91a731036a29774f77a58c3c52fc7585c16318b41e6dda100",
+    "package.json": "bd6167eb39bd61ecb9bdd6725b83b5e9b01426337a262d668ebe3046bcf5e6de",
+    "package-lock.json": "c3c04d78631245d2c06c23258520472ae887f252b136edcd700cd1e9fc4a1b90",
+    "vite.config.js": "a21a6d2bfd533c66cb0edcc6b10ec371b200838ce90769b03eb97b2d1213383d",
+    "wrangler.toml": "a657971435e1e9172d1e6929bf332919c1c1e2c8d5ff8525f32d530ca8dbf18c",
+    "public/_headers": "77d5696600204665bcf3797930be52c1b9758df78e9ee6955d5e0b68bcf7770f",
+    "src/App.jsx": "4b41d779e9a9194e03b57aee5a1513f9c7fda05215c4c08557e58e140ae3d9eb",
+    "src/ScoreChart.jsx": "4f6db7d320677db72f0ad9e11c21bd1b9fab5ea2676e9bda220826366270b7d2",
+    "src/ResultSummary.jsx": "1ce0da9434da72c5d0e1917b8f5ba1e1742590f0ac9c68ba455da125fc3dabe1",
+    "src/resultSummary.js": "522bbd4ade73fdd1e7bd3ba8c5650779313c04ecd6ad0aa5c430bd4976d6cd0a",
+    "src/leadValidation.js": "63792e33ef2ca5442ac73dcfaf57c1a7b8835dd5571bd0f5b356beb70537a83d",
+    "src/index.css": "6c2b134726472a1e928e7f2b10c252692b9fdbebb44ab5703794b8f4d03a4f5a",
+    "src/data.js": "72b72a3db3db110dbfef8ea84361a8644edb1f83a4fcfb4504a9e8128f50ff2e",
+    "src/diagnosis.js": "08c888de81131c4653664319cb8710237befe2783d84a2cd922518319c65ed44",
+    "src/transport.js": "9e23c72830f9f1958860af6f175f353b7b1b7ecc9e5fdcd09b6488e9186c418c",
+    "src/turnstile.js": "0f56dd96577574b4ff8357c91e6c0fae45d495f93694b1aa9b56a7b2e378a668",
+    "src/saveSubmission.js": "3ded3c5b18847968111ba97244ac398ac06aff86f54728b4cbbf897c93e9473d",
+    "src/HumanVerification.jsx": "5866248f22ef413017989516a2b5f3d4a92ad26595f16ea3c2e70bce87006278",
+    "gas/Code.gs": "bd24cbb9a4b3558e8eb73df7666922ee5b79612758ef321e8f533ce2ab828692",
+    "gas/appsscript.json": "028cdf3c672298507091f048258d5cf45417a48a0e1b4dc3a1d24b35467e246b"
+  },
+  "verified": [
+    "PR #14 merged into main as a020566; before and after the merge, wrangler versions list showed no new version from Workers Builds.",
+    "npm ci and npm test passed (256 tests); the release build passed config, header and asset checks.",
+    "npm run deploy:built deployed Worker 6cdcc6b8; npm run healthcheck -- --require-security-headers passed (GET only).",
+    "npm run verify:baseline -- --live matched the three live assets to this record.",
+    "On the live page at 375px, the welcome screen shows the new name/email notice and the question screen shows the instruction line and 1/5 anchors with no horizontal overflow. No POST request was sent.",
+    "Before merge, the mock server (test/browser-server.mjs) covered quick mode at 375px and full mode at 320px through AI feedback and plan: no horizontal overflow, all score bars, submit button within 812px, empty submit sends nothing, lost save retried with the same body and one registration, double tap advances one question, edited answers match the saved payload, summary and bars, results open at scrollY 0 standalone and embedded."
+  ],
+  "unverified": [
+    "A full save on production with the new screen (not run, to avoid writing a test row).",
+    "A real phone, and browsers other than the automated Chromium.",
+    "Display inside the homepage embed (still a 950px frame; results scroll inside it)."
+  ],
+  "scope": "Frontend only: design round 1 (faster fade, scroll to top per screen, phone spacing, readable answer buttons, lead form errors, results summary, phone score bars, one-line consult button). GAS unchanged."
+}
