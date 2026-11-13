@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Chart from 'chart.js/auto'
 import RenderBoundary from './RenderBoundary'
 
@@ -38,9 +38,24 @@ function Radar({ categories, ratings }) {
   return <div className="h-[400px] md:h-[550px] relative"><canvas ref={canvas} role="img" aria-label="各項目の満足度スコア。数値は下の項目別スコアで確認できます。" /></div>
 }
 
+// Chart.js cannot lay out a radar created inside display:none, so the radar is
+// only mounted at desktop width instead of being hidden with CSS.
+const WIDE = '(min-width: 768px)'
+function useWide() {
+  const [wide, setWide] = useState(() => window.matchMedia(WIDE).matches)
+  useEffect(() => {
+    const query = window.matchMedia(WIDE)
+    const update = () => setWide(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+  return wide
+}
+
 // Phones get labelled horizontal bars that double as the score table; wider screens keep the radar.
 function Bars({ categories, ratings }) {
-  return <ul className="space-y-3 md:hidden" aria-label="各項目の満足度スコア（5点満点）">
+  return <ul className="space-y-3" aria-label="各項目の満足度スコア（5点満点）">
     {categories.map(({ name }) => {
       const score = ratings[name]
       return <li key={name} className="flex items-center gap-3 text-sm">
@@ -55,9 +70,9 @@ function Bars({ categories, ratings }) {
 }
 
 export default function ScoreChart({ categories, ratings }) {
+  const wide = useWide()
+  if (!wide) return <Bars categories={categories} ratings={ratings} />
   return <>
-    <Bars categories={categories} ratings={ratings} />
-    <div className="hidden md:block">
     <RenderBoundary message="グラフを表示できませんでした。回答は保持されています。下の項目別スコアでも確認できます。" recoveryLabel="グラフを再表示する">
       <Radar categories={categories} ratings={ratings} />
     </RenderBoundary>
@@ -69,6 +84,5 @@ export default function ScoreChart({ categories, ratings }) {
         <tbody>{categories.map(({ name }) => <tr key={name} className="border-t border-slate-100"><th scope="row" className="py-2 font-medium">{name}</th><td>{ratings[name]} / 5</td></tr>)}</tbody>
       </table>
     </details>
-    </div>
   </>
 }
