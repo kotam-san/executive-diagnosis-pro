@@ -52,7 +52,7 @@ mainの`a020566`（PR #14）を画面だけ公開しました。GASはバージ�
 - ソース：`production-2026-11-13`タグ
 - 記録：[releases/production-2026-11-13.json](../releases/production-2026-11-13.json)。`scripts/verify-production-baseline.mjs`の照合先もこの記録に切り替えた。
 - 画面：マージの前後に`npx wrangler versions list`で自動ビルドの新バージョンがないことを確かめ、`VITE_TURNSTILE_SITE_KEY`を付けて`npm run build:release`と`npm run deploy:built`を実行した。
-- 確認：`npm run healthcheck -- --require-security-headers`と`npm run verify:baseline -- --live`が成功。本番画面の幅375で、最初の画面の案内と質問画面の説明を確かめた（保存・通知・AIは送っていない）。新画面での本番保存、スマホ実機、ホームページの埋め込みは未確認。
+- 確認：`npm run healthcheck -- --require-security-headers`と`npm run verify:baseline -- --live`が成功。本番画面の幅375で、最初の画面の案内と質問画面の説明を確かめた（保存・通知・AIは送っていない）。公開後、所有者がスマホ実機でホームページの埋め込みを最後まで通し、問題がないことを確かめた。パソコンでは埋め込みの枠が768px以上（画面幅1280で1163px）のため、レーダーチャートが出る。
 
 ## 現在の公開版
 

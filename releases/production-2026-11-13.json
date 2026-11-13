@@ -65,12 +65,13 @@
     "npm run deploy:built deployed Worker 6cdcc6b8; npm run healthcheck -- --require-security-headers passed (GET only).",
     "npm run verify:baseline -- --live matched the three live assets to this record.",
     "On the live page at 375px, the welcome screen shows the new name/email notice and the question screen shows the instruction line and 1/5 anchors with no horizontal overflow. No POST request was sent.",
-    "Before merge, the mock server (test/browser-server.mjs) covered quick mode at 375px and full mode at 320px through AI feedback and plan: no horizontal overflow, all score bars, submit button within 812px, empty submit sends nothing, lost save retried with the same body and one registration, double tap advances one question, edited answers match the saved payload, summary and bars, results open at scrollY 0 standalone and embedded."
+    "Before merge, the mock server (test/browser-server.mjs) covered quick mode at 375px and full mode at 320px through AI feedback and plan: no horizontal overflow, all score bars, submit button within 812px, empty submit sends nothing, lost save retried with the same body and one registration, double tap advances one question, edited answers match the saved payload, summary and bars, results open at scrollY 0 standalone and embedded.",
+    "After the release, the owner ran the homepage embed (https://www.1planet.jp/keieishasindanpro) to the end on a real phone and reported no problems. On desktop the embed frame measured 1163px wide at a 1280px window and 1310px at 1440px, so desktop visitors get the radar chart."
   ],
   "unverified": [
-    "A full save on production with the new screen (not run, to avoid writing a test row).",
-    "A real phone, and browsers other than the automated Chromium.",
-    "Display inside the homepage embed (still a 950px frame; results scroll inside it)."
+    "The saved row and notification email from the owner's production run were not checked here (the owner reported no problems).",
+    "Browsers other than the owner's phone and the automated Chromium.",
+    "The embed frame is still 950px high; the results scroll inside it (to be fixed in design round 2)."
   ],
   "scope": "Frontend only: design round 1 (faster fade, scroll to top per screen, phone spacing, readable answer buttons, lead form errors, results summary, phone score bars, one-line consult button). GAS unchanged."
 }
