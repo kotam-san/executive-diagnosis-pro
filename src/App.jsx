@@ -5,7 +5,7 @@ import { completeRatings, createRequestScope, requestAI } from './diagnosis'
 import HumanVerification from './HumanVerification'
 import { leadErrors } from './leadValidation'
 import ScoreChart from './ScoreChart'
-import ResultSummary from './ResultSummary'
+import ResultSummary from './ResultSummary.jsx'
 import RenderBoundary from './RenderBoundary'
 
 const TURNSTILE_SITE_KEY = import.meta.env?.VITE_TURNSTILE_SITE_KEY || ''

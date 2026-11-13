@@ -1,4 +1,4 @@
-import { summarize } from './resultSummary'
+import { summarize } from './resultSummary.js'
 
 const CONTACT_URL = 'https://www.1planet.jp/contact'
 
