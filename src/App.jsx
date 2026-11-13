@@ -177,10 +177,11 @@ export default function App() {
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
 
-        <header className="text-center mb-12 animate-in">
-          <p className="text-[10px] tracking-[0.2em] text-emerald-700 font-black mb-3 uppercase">FOR EXECUTIVE LEADERSHIP</p>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">経営者の「器」診断 Pro</h1>
-          <div className="h-1.5 w-24 bg-emerald-600 mx-auto rounded-full shadow-xs"></div>
+        {/* Phones get a compact header after the first screen so the question or form stays in view. */}
+        <header className={`text-center animate-in ${appPhase === 'welcome' ? 'mb-12' : 'mb-6 md:mb-12'}`}>
+          <p className={`text-xs tracking-wider text-emerald-700 font-black mb-3 ${appPhase === 'welcome' ? '' : 'hidden md:block'}`}>ONE PLANET 経営者向け自己診断</p>
+          <h1 className={`${appPhase === 'welcome' ? 'text-4xl' : 'text-2xl'} md:text-5xl font-black text-slate-900 mb-4 tracking-tight`}>経営者の「器」診断 Pro</h1>
+          <div className={`h-1.5 w-24 bg-emerald-600 mx-auto rounded-full shadow-xs ${appPhase === 'welcome' ? '' : 'hidden md:block'}`}></div>
         </header>
 
         {appPhase === 'welcome' && (
@@ -204,36 +205,37 @@ export default function App() {
         )}
 
         {appPhase === 'questions' && currentCategory && (
-          <div className="bg-white rounded-[2rem] p-10 shadow-2xl border border-slate-100 animate-in">
+          <div className="bg-white rounded-[2rem] p-5 md:p-10 shadow-2xl border border-slate-100 animate-in">
             <div className="flex justify-between items-center mb-10">
-              <div className="px-5 py-2 bg-emerald-50 rounded-full text-[10px] font-black text-emerald-700 uppercase tracking-widest border border-emerald-100">
+              <div className="px-5 py-2 bg-emerald-50 rounded-full text-xs font-black text-emerald-700 border border-emerald-100">
                 {currentCategory.domain}
               </div>
               <div className="text-slate-400 font-mono text-sm font-bold bg-slate-50 px-3 py-1 rounded-lg">
                 {currentStep + 1} / {activeCategories.length}
               </div>
             </div>
-            <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
+            <h3 className="text-2xl md:text-4xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
               {currentCategory.name}
             </h3>
-            <p className="text-xl text-slate-600 mb-14 leading-relaxed font-medium">
+            <p className="text-lg md:text-xl text-slate-600 mb-8 md:mb-14 leading-relaxed font-medium">
               {currentCategory.question}
             </p>
-            <div className="flex justify-between gap-3 md:gap-6 mb-14">
+            <p className="text-sm text-slate-600 mb-3">今の満足度を5段階で選んでください</p>
+            <div className="flex justify-between gap-2 md:gap-6 mb-4 md:mb-14">
               {[1,2,3,4,5].map(n => (
                 <button key={n}
                   onClick={() => handleAnswer(n)} disabled={isTransitioning}
                   className={`flex-1 h-20 md:h-28 rounded-2xl font-black text-2xl transition-all active:scale-95
                     ${ratings[currentCategory.name] === n
                       ? 'bg-emerald-700 text-white scale-105 shadow-xl ring-4 ring-emerald-100'
-                      : 'bg-slate-50 text-slate-300 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300'}`}>
+                      : 'bg-white text-slate-700 border-2 border-slate-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300'}`}>
                   {n}
                 </button>
               ))}
             </div>
-            <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-t border-slate-50 pt-6">
-              <span>Low: 改善が必要</span>
-              <span>High: 理想的な状態</span>
+            <div className="flex justify-between text-sm font-bold text-slate-600 border-t border-slate-50 pt-6">
+              <span>1：改善が必要</span>
+              <span>5：理想的な状態</span>
             </div>
             {errorMsg && <p role="alert" className="text-red-700">{errorMsg}</p>}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
@@ -327,12 +329,12 @@ export default function App() {
               <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm font-bold">{errorMsg}</div>
             )}
 
-            <div className="bg-slate-900 text-slate-50 rounded-[2.5rem] p-10 md:p-16 shadow-2xl border border-slate-800 relative overflow-hidden">
+            <div className="bg-slate-900 text-slate-50 rounded-[2.5rem] p-6 md:p-16 shadow-2xl border border-slate-800 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-12 opacity-5 text-[15rem] pointer-events-none font-serif italic">AI</div>
 
               <div className="mb-10 border-b border-slate-800 pb-10">
-                <h3 className="text-3xl font-black flex items-center gap-4 tracking-tight mb-2">
-                  <span className="bg-emerald-600 px-4 py-1 rounded-xl text-xs text-white uppercase font-black tracking-widest">AI Coach</span>
+                <h3 className="text-xl md:text-3xl font-black flex flex-wrap items-center gap-x-4 gap-y-2 tracking-tight mb-2">
+                  <span className="bg-emerald-600 px-4 py-1 rounded-xl text-xs text-white font-black tracking-widest">AIコーチ</span>
                   エグゼクティブ・フィードバック
                 </h3>
                 <p className="text-slate-500 font-medium">満足度スコアに基づく、経営者の「器」の解析結果</p>
@@ -372,7 +374,7 @@ export default function App() {
                 </div>
               )}
 
-              <div className="mt-16 bg-emerald-950/20 rounded-[2rem] p-10 border border-emerald-800/30">
+              <div className="mt-16 bg-emerald-950/20 rounded-[2rem] p-5 md:p-10 border border-emerald-800/30">
                 <div className="flex items-center justify-between mb-10 flex-wrap gap-6">
                   <h4 className="text-2xl font-black text-emerald-400 tracking-tight">✨ 具体的アクションプラン</h4>
                   {!aiActionPlan && (
@@ -394,9 +396,9 @@ export default function App() {
                 )}
               </div>
 
-              <div className="mt-20 p-10 md:p-14 bg-white/5 rounded-[3rem] border border-white/10 text-center">
+              <div className="mt-20 p-5 md:p-14 bg-white/5 rounded-3xl md:rounded-[3rem] border border-white/10 text-center">
                 <div className="text-4xl mb-6">💬</div>
-                <h4 className="text-3xl font-black mb-6 tracking-tight">さらなる高み、その先へ</h4>
+                <h4 className="text-2xl md:text-3xl font-black mb-6 tracking-tight">さらなる高み、その先へ</h4>
                 <p className="text-slate-400 mb-12 max-w-xl mx-auto leading-relaxed text-lg">
                   AIが指摘した課題を具体的にどう経営判断に活かすか。<br/>
                   30分の無料面談で、あなただけの「次の一手」を一緒に深掘りしませんか？
@@ -408,7 +410,7 @@ export default function App() {
               </div>
             </div>
 
-            <button onClick={resetDiagnosis} className="w-full py-8 text-slate-400 font-black hover:text-slate-600 transition-all uppercase tracking-[0.3em] text-xs">
+            <button onClick={resetDiagnosis} className="w-full py-8 text-slate-400 font-black hover:text-slate-600 transition-all text-sm underline">
               診断を最初からリセットする
             </button>
           </div>
