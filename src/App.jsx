@@ -407,8 +407,8 @@ export default function App() {
                     {aiActionPlan}
                   </div>
                 ) : (
-                  <p className="text-emerald-900/50 text-center py-8 font-bold italic tracking-widest uppercase text-sm">
-                    Action items will be generated here
+                  <p className="text-slate-400 text-center py-8 text-sm">
+                    「プランを提案させる」を押すと、ここに表示されます。
                   </p>
                 )}
               </div>
@@ -416,12 +416,12 @@ export default function App() {
               <div className="mt-20 p-5 md:p-14 bg-white/5 rounded-3xl md:rounded-[3rem] border border-white/10 text-center">
                 <div className="text-4xl mb-6">💬</div>
                 <h4 className="text-2xl md:text-3xl font-black mb-6 tracking-tight">さらなる高み、その先へ</h4>
-                <p className="text-slate-400 mb-12 max-w-xl mx-auto leading-relaxed text-lg">
+                <p className="text-slate-400 mb-8 md:mb-12 max-w-xl mx-auto leading-relaxed text-base md:text-lg">
                   AIが指摘した課題を具体的にどう経営判断に活かすか。<br/>
                   30分の無料面談で、あなただけの「次の一手」を一緒に深掘りしませんか？
                 </p>
                 <a href="https://www.1planet.jp/contact" target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 px-14 py-5 bg-emerald-600 text-white rounded-2xl font-black text-xl hover:bg-emerald-500 transition-all shadow-[0_20px_50px_rgba(5,150,105,0.3)] hover:-translate-y-1 active:scale-95 no-underline">
+                  className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-4 md:px-14 py-4 md:py-5 bg-emerald-600 text-white rounded-2xl font-black text-base md:text-xl hover:bg-emerald-500 transition-all shadow-[0_20px_50px_rgba(5,150,105,0.3)] hover:-translate-y-1 active:scale-95 no-underline">
                   個別面談を依頼する →
                 </a>
               </div>
